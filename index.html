@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kickboxing Cobrança - WhatsApp</title>
+<title>Kickboxing Cobrança - WhatsApp Business</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Montserrat',sans-serif;}
@@ -53,7 +53,7 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
   <h1 id="dataHoje"></h1>
 </header>
 
-<h2>🔥 Kickboxing Cobrança</h2>
+<h2>🔥 Kickboxing Cobrança - WhatsApp Business</h2>
 
 <div id="formCadastro">
   <input type="text" id="nome" placeholder="Nome do aluno">
@@ -63,8 +63,7 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
     <option value="7">7:00</option>
     <option value="8">8:00</option>
   </select>
-  <button id="btnSalvar">💾 Salvar ou editar aluno</button>
-  <button id="btnEnviar">💬 Enviar mensagem</button>
+  <button id="btnSalvar">💾 Salvar / Editar</button>
 </div>
 
 <input type="text" id="buscaAluno" placeholder="🔍 Buscar aluno...">
@@ -95,12 +94,30 @@ function atualizarCabecalhoData(){
   document.getElementById("dataHoje").innerText=hoje.toLocaleDateString('pt-BR',op);
 }
 
-// === WHATSAPP ===
+// === MENSAGENS ALEATÓRIAS ===
+const mensagens = [
+  "Oi [NOME]! Lembrando do pagamento da mensalidade 💪🔥",
+  "Fala [NOME]! Bora acertar a mensalidade pra continuar firme no kickboxing 🥊",
+  "Ei [NOME], tudo bem? Só lembrando da mensalidade desse mês 😄",
+  "Olá [NOME]! Esperamos você nas aulas, não esqueça do pagamento 💥",
+  "Oi [NOME]! Hora de manter a energia e acertar a mensalidade 💪"
+];
+
+// === WHATSAPP BUSINESS ===
 function enviarWhatsApp(nome, telefone, valor){
-  const mensagem = `Oi ${nome}! 🥊 Sua mensalidade de R$${valor.toFixed(2)} está te esperando! Bora treinar? 😃 — Equipe Kickboxing 🔥`;
   const numero = telefone.replace(/\D/g,'');
-  const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
-  window.open(url,'_blank');
+  const mensagemBase = mensagens[Math.floor(Math.random()*mensagens.length)];
+  const mensagem = mensagemBase.replace("[NOME]", nome) + ` | Valor: R$${valor.toFixed(2)}`;
+
+  const linkBusiness = `intent://send?phone=55${numero}&text=${encodeURIComponent(mensagem)}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;end`;
+  const linkNormal = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
+
+  if (/Android/i.test(navigator.userAgent)) {
+    window.location.href = linkBusiness;
+    setTimeout(() => window.open(linkNormal, "_blank"), 1500);
+  } else {
+    window.open(linkNormal, "_blank");
+  }
 }
 
 // === BANCO LOCAL ===
@@ -168,11 +185,11 @@ function carregarListas(filtro=""){
       const li=document.createElement("li");
       li.innerHTML=`<span>${a.nome} - ${a.valor>0?`R$${a.valor.toFixed(2)}`:"(sem valor)"} | Última: ${new Date(a.data).toLocaleDateString()}</span>
       <div class="actions">
-        ${!a.pago?`<button class="whatsapp" onclick="enviarWhatsApp('${a.nome}','${a.telefone}',${a.valor||0})">💬 Enviar mensagem</button>
-        <button class="pago" onclick="marcarPago(${a.id})">✅ Marcar como pago</button>`:""}
-        <button class="editar" onclick="editarAluno(${a.id})">✏️ Editar aluno</button>
-        <button class="copiar" onclick="copiarTexto('${a.telefone}')">📋 Copiar telefone</button>
-        <button class="excluir" onclick="excluirAluno(${a.id})">🗑 Excluir aluno</button>
+        ${!a.pago?`<button class="whatsapp" onclick="enviarWhatsApp('${a.nome}','${a.telefone}',${a.valor||0})">💬 Enviar</button>
+        <button class="pago" onclick="marcarPago(${a.id})">✅ Pago</button>`:""}
+        <button class="editar" onclick="editarAluno(${a.id})">✏️ Editar</button>
+        <button class="copiar" onclick="copiarTexto('${a.telefone}')">📋 Copiar</button>
+        <button class="excluir" onclick="excluirAluno(${a.id})">🗑 Excluir</button>
       </div>`;
       lista.appendChild(li);
     });
@@ -206,27 +223,6 @@ function limparCampos(){
 document.addEventListener("DOMContentLoaded",()=>{
   atualizarCabecalhoData();
 
-  // Adicionar contatos apenas no horário 8:00
-  if(getAlunos().length===0){
-    const contatos=[
-      "Gustavo - 7583009378","LUAN , MADERADA - 75982819958","Dandan Auto Elétrica - 7181192057",
-      "Rogerio jordan - 7182454233","Theus Senna😼CARATECA - 7193063739","Kay Luz - 7581002782",
-      "Márcia Laiane ✨ - 7581119429","Tinaairam Airam - 7581142791","Valdir Lima PARUDO - 7581330340",
-      "Uilson Martins personal - 7581429991","Josi🔥PAO DE MEL - 7581467974","Linodosarau - 7581508130",
-      "Laícia Moreira - 7581711462","Renan - 7581823405","Jaqueline♡ - 7581856226",
-      "Carlos Lima - 7581949719","TecSound_assistencia_tecn - 7582084265","Eduardo - 7582453054",
-      "Edvania Santos - 7582464789","Gabriel - 7582465947","Igor Miranda - 7582686171",
-      "Sinho - 7582915059","Mirele - 7582993778","Dayana 👑 - 7583093078",
-      "Ninho - 7583557058","Yanna Novais | Advogada - 7583605100","Ô Marras, CABELIHO - 7588367138",
-      "Paredinha_do_gordinho MATHEUS - 7598444619","Nice - 7598847923","♥︎Juliana De Cassia♥︎ - 7599726736"
-    ];
-    const novos=contatos.map(c=>{
-      const [nome,telefone]=c.split("-");
-      return {id:Date.now()+Math.random(),nome:nome.trim(),telefone:telefone.replace(/\D/g,""),valor:0,pago:false,data:new Date().toISOString(),horario:"8"};
-    });
-    setAlunos(novos);
-  }
-
   document.getElementById("btnSalvar").addEventListener("click",()=>{
     const nome=document.getElementById("nome").value.trim();
     const telefone=document.getElementById("telefone").value.trim();
@@ -234,14 +230,6 @@ document.addEventListener("DOMContentLoaded",()=>{
     const horario=document.getElementById("horario").value;
     if(!nome||!telefone){alert("⚠️ Preencha nome e telefone!"); return;}
     salvarAluno(nome,telefone,valor,horario);
-  });
-
-  document.getElementById("btnEnviar").addEventListener("click", ()=>{
-    const nome=document.getElementById("nome").value.trim();
-    const telefone=document.getElementById("telefone").value.trim();
-    const valor=parseFloat(document.getElementById("valor").value)||0;
-    if(!nome||!telefone){alert("⚠️ Preencha nome e telefone!"); return;}
-    enviarWhatsApp(nome,telefone,valor);
   });
 
   document.getElementById("buscaAluno").addEventListener("input",(e)=>carregarListas(e.target.value));
