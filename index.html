@@ -64,7 +64,7 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
     <option value="8">8:00</option>
   </select>
   <button id="btnSalvar">💾 Salvar ou editar aluno</button>
-  <button id="btnEnviar">💬 Enviar mensagem individual</button>
+  <button id="btnEnviar">💬 Enviar mensagem</button>
 </div>
 
 <input type="text" id="buscaAluno" placeholder="🔍 Buscar aluno...">
@@ -72,182 +72,181 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
 
 <div id="listasHorarios">
   <div class="section">
-    <h3>🕖 PRIMEIRO Horário :7:00</h3>
-    <h4>🔴 PENDENTES</h4>
+    <h3>🕖 Horário 7:00</h3>
+    <h4>🟢 Pendentes</h4>
     <ul id="listaPendentes7"></ul>
-    <h4>🟢 PAGOS</h4>
+    <h4>🔴 Pagos</h4>
     <ul id="listaPagos7"></ul>
   </div>
   <div class="section">
-    <h3>🕗 SEGUNDO Horário :8:00</h3>
-    <h4>🔴 PENDENTES</h4>
+    <h3>🕗 Horário 8:00</h3>
+    <h4>🟢 Pendentes</h4>
     <ul id="listaPendentes8"></ul>
-    <h4>🟢 PAGOS</h4>
+    <h4>🔴 Pagos</h4>
     <ul id="listaPagos8"></ul>
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getDatabase, ref, set, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyB9FbKvDEBLI2XfZuGvXhdZAqKPj3E4SJk",
-  authDomain: "controle-de-pagamentos-13d40.firebaseapp.com",
-  projectId: "controle-de-pagamentos-13d40",
-  storageBucket: "controle-de-pagamentos-13d40.appspot.com",
-  messagingSenderId: "150820329975",
-  appId: "1:150820329975:web:39d40fbb3fdb953b54b6f2",
-  measurementId: "G-S8KV4MDW48"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
+<script>
 // === DATA ===
 function atualizarCabecalhoData(){
-  const hoje = new Date();
-  const op = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  document.getElementById("dataHoje").innerText = hoje.toLocaleDateString('pt-BR', op);
+  const hoje=new Date();
+  const op={weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  document.getElementById("dataHoje").innerText=hoje.toLocaleDateString('pt-BR',op);
 }
 
 // === WHATSAPP ===
 function enviarWhatsApp(nome, telefone, valor){
   const mensagem = `Oi ${nome}! 🥊 Sua mensalidade de R$${valor.toFixed(2)} está te esperando! Bora treinar? 😃 — Equipe Kickboxing 🔥`;
   const numero = telefone.replace(/\D/g,'');
-  window.open(`https://api.whatsapp.com/send?phone=55${numero}&text=${encodeURIComponent(mensagem)}`,'_blank');
+  const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
+  window.open(url,'_blank');
 }
 
-// === FUNÇÕES FIREBASE ===
-function setAlunoFirebase(aluno){
-  const id = aluno.id || Date.now() + Math.floor(Math.random()*1000);
-  set(ref(db, 'alunos/' + id), {...aluno, id});
-}
+// === BANCO LOCAL ===
+function getAlunos(){return JSON.parse(localStorage.getItem("alunos")||"[]");}
+function setAlunos(alunos){localStorage.setItem("alunos",JSON.stringify(alunos));}
 
-function excluirAlunoFirebase(id){
-  remove(ref(db, 'alunos/' + id));
-}
-
-function marcarPagoFirebase(id){
-  update(ref(db, 'alunos/' + id), {pago:true, data:new Date().toISOString()});
-}
-
-function getAlunosFirebase(callback){
-  const alunosRef = ref(db, 'alunos');
-  onValue(alunosRef, (snapshot) => {
-    const data = snapshot.val();
-    callback(data ? Object.values(data) : []);
-  });
-}
-
-// === CARREGAR LISTAS ===
-function carregarListasOnline(filtro=""){
-  getAlunosFirebase(alunos=>{
-    const pendentes7 = alunos.filter(a=>!a.pago && a.horario==='7' && a.nome.toLowerCase().includes(filtro.toLowerCase()));
-    const pagos7 = alunos.filter(a=>a.pago && a.horario==='7' && a.nome.toLowerCase().includes(filtro.toLowerCase()));
-    const pendentes8 = alunos.filter(a=>!a.pago && a.horario==='8' && a.nome.toLowerCase().includes(filtro.toLowerCase()));
-    const pagos8 = alunos.filter(a=>a.pago && a.horario==='8' && a.nome.toLowerCase().includes(filtro.toLowerCase()));
-
-    function preencherLista(lista, alunos){
-      lista.innerHTML="";
-      alunos.forEach(a=>{
-        const li = document.createElement("li");
-        li.innerHTML = `<span>${a.nome} - ${a.telefone} - R$${(a.valor||0).toFixed(2)} | Última: ${new Date(a.data).toLocaleDateString()}</span>
-        <div class="actions">
-          ${!a.pago?`<button class="whatsapp" onclick="enviarWhatsApp('${a.nome}','${a.telefone}',${a.valor||0})">💬 Enviar mensagem</button>
-          <button class="pago" onclick="marcarPagoFirebase(${a.id})">✅ Marcar como pago</button>`:""}
-          <button class="editar" onclick="editarAluno(${a.id})">✏️ Editar</button>
-          <button class="excluir" onclick="excluirAlunoFirebase(${a.id})">🗑 Excluir</button>
-        </div>`;
-        lista.appendChild(li);
-      });
-    }
-
-    preencherLista(document.getElementById("listaPendentes7"), pendentes7);
-    preencherLista(document.getElementById("listaPagos7"), pagos7);
-    preencherLista(document.getElementById("listaPendentes8"), pendentes8);
-    preencherLista(document.getElementById("listaPagos8"), pagos8);
-
-    const totalPendentes = alunos.filter(a=>!a.pago).reduce((acc,a)=>acc+(a.valor||0),0);
-    const totalPagos = alunos.filter(a=>a.pago).reduce((acc,a)=>acc+(a.valor||0),0);
-    document.getElementById("resumoFinanceiro").innerText = `🔴 Pendentes: R$${totalPendentes.toFixed(2)} | 🟢 Pagos: R$${totalPagos.toFixed(2)}`;
-  });
+// === SALVAR / EDITAR ===
+let editandoId=null;
+function salvarAluno(nome,telefone,valor,horario){
+  const alunos=getAlunos();
+  if(editandoId){
+    const atualizados=alunos.map(a=>a.id===editandoId?{...a,nome,telefone,valor:valor||0,horario}:a);
+    setAlunos(atualizados);
+    editandoId=null;
+    alert("✏️ Aluno editado!");
+  }else{
+    alunos.push({id:Date.now(),nome,telefone,valor:valor||0,pago:false,data:new Date().toISOString(),horario});
+    setAlunos(alunos);
+    alert("✅ Aluno salvo!");
+  }
+  limparCampos();
+  carregarListas();
 }
 
 // === EDITAR ===
-let editandoId = null;
 function editarAluno(id){
-  getAlunosFirebase(alunos=>{
-    const aluno = alunos.find(a=>a.id===id);
-    if(!aluno) return;
-    document.getElementById("nome").value = aluno.nome;
-    document.getElementById("telefone").value = aluno.telefone;
-    document.getElementById("valor").value = aluno.valor||"";
-    document.getElementById("horario").value = aluno.horario;
-    editandoId = id;
-  });
+  const aluno=getAlunos().find(a=>a.id===id);
+  if(!aluno)return;
+  document.getElementById("nome").value=aluno.nome;
+  document.getElementById("telefone").value=aluno.telefone;
+  document.getElementById("valor").value=aluno.valor||"";
+  document.getElementById("horario").value=aluno.horario;
+  editandoId=id;
 }
 
-// === ADICIONAR CONTATOS INICIAIS ===
-const contatos = [
-  "Gustavo - 7583009378","LUAN , MADERADA - 75982819958","Dandan Auto Elétrica - 7181192057",
-  "Rogerio jordan - 7182454233","Theus Senna😼CARATECA - 7193063739","Kay Luz - 7581002782",
-  "Márcia Laiane ✨ - 7581119429","Tinaairam Airam - 7581142791","Valdir Lima PARUDO - 7581330340",
-  "Uilson Martins personal - 7581429991","Josi🔥PAO DE MEL - 7581467974","Linodosarau - 7581508130",
-  "Laícia Moreira - 7581711462","Renan - 7581823405","Jaqueline♡ - 7581856226",
-  "Carlos Lima - 7581949719","TecSound_assistencia_tecn - 7582084265","Eduardo - 7582453054",
-  "Edvania Santos - 7582464789","Gabriel - 7582465947","Igor Miranda - 7582686171",
-  "Sinho - 7582915059","Mirele - 7582993778","Dayana 👑 - 7583093078",
-  "Ninho - 7583557058","Yanna Novais | Advogada - 7583605100","Ô Marras, CABELIHO - 7588367138",
-  "Paredinha_do_gordinho MATHEUS - 7598444619","Nice - 7598847923","♥︎Juliana De Cassia♥︎ - 7599726736"
-];
+// === MARCAR PAGO ===
+function marcarPago(id){
+  const alunos=getAlunos().map(a=>a.id===id?{...a,pago:true,data:new Date().toISOString()}:a);
+  setAlunos(alunos);
+  carregarListas();
+}
 
-function adicionarContatosIniciais(){
-  getAlunosFirebase(alunos=>{
-    if(alunos.length === 0){
-      contatos.forEach(c=>{
-        const [nome,telefone] = c.split("-");
-        setAlunoFirebase({
-          nome: nome.trim(),
-          telefone: telefone.trim().replace(/\D/g,""),
-          valor:0,
-          pago:false,
-          data:new Date().toISOString(),
-          horario:"8"
-        });
-      });
-    }
-  });
+// === EXCLUIR ===
+function excluirAluno(id){
+  if(!confirm("❌ Tem certeza que deseja excluir este aluno?"))return;
+  const alunos=getAlunos().filter(a=>a.id!==id);
+  setAlunos(alunos);
+  carregarListas();
+}
+
+// === COPIAR ===
+function copiarTexto(texto){navigator.clipboard.writeText(texto);alert("📋 Copiado!");}
+
+// === LISTAS ===
+function carregarListas(filtro=""){
+  const alunos=getAlunos();
+  const pendentes7=alunos.filter(a=>!a.pago && a.horario==='7' && a.nome.toLowerCase().includes(filtro.toLowerCase()));
+  const pagos7=alunos.filter(a=>a.pago && a.horario==='7' && a.nome.toLowerCase().includes(filtro.toLowerCase()));
+  const pendentes8=alunos.filter(a=>!a.pago && a.horario==='8' && a.nome.toLowerCase().includes(filtro.toLowerCase()));
+  const pagos8=alunos.filter(a=>a.pago && a.horario==='8' && a.nome.toLowerCase().includes(filtro.toLowerCase()));
+  
+  function preencherLista(lista,alunos){
+    lista.innerHTML="";
+    alunos.forEach(a=>{
+      const li=document.createElement("li");
+      li.innerHTML=`<span>${a.nome} - ${a.valor>0?`R$${a.valor.toFixed(2)}`:"(sem valor)"} | Última: ${new Date(a.data).toLocaleDateString()}</span>
+      <div class="actions">
+        ${!a.pago?`<button class="whatsapp" onclick="enviarWhatsApp('${a.nome}','${a.telefone}',${a.valor||0})">💬 Enviar mensagem</button>
+        <button class="pago" onclick="marcarPago(${a.id})">✅ Marcar como pago</button>`:""}
+        <button class="editar" onclick="editarAluno(${a.id})">✏️ Editar aluno</button>
+        <button class="copiar" onclick="copiarTexto('${a.telefone}')">📋 Copiar telefone</button>
+        <button class="excluir" onclick="excluirAluno(${a.id})">🗑 Excluir aluno</button>
+      </div>`;
+      lista.appendChild(li);
+    });
+  }
+  
+  preencherLista(document.getElementById("listaPendentes7"),pendentes7);
+  preencherLista(document.getElementById("listaPagos7"),pagos7);
+  preencherLista(document.getElementById("listaPendentes8"),pendentes8);
+  preencherLista(document.getElementById("listaPagos8"),pagos8);
+  atualizarResumoFinanceiro();
+}
+
+// === RESUMO ===
+function atualizarResumoFinanceiro(){
+  const alunos=getAlunos();
+  const totalPendentes=alunos.filter(a=>!a.pago).reduce((acc,a)=>acc+(a.valor||0),0);
+  const totalPagos=alunos.filter(a=>a.pago).reduce((acc,a)=>acc+(a.valor||0),0);
+  document.getElementById("resumoFinanceiro").innerText=`🔴 Pendentes: R$${totalPendentes.toFixed(2)} | 🟢 Pagos: R$${totalPagos.toFixed(2)}`;
+}
+
+// === LIMPAR ===
+function limparCampos(){
+  document.getElementById("nome").value="";
+  document.getElementById("telefone").value="";
+  document.getElementById("valor").value="";
+  document.getElementById("horario").value="8";
+  editandoId=null;
 }
 
 // === INICIALIZAÇÃO ===
-document.addEventListener("DOMContentLoaded", ()=>{
+document.addEventListener("DOMContentLoaded",()=>{
   atualizarCabecalhoData();
-  adicionarContatosIniciais();
-  carregarListasOnline();
 
-  document.getElementById("btnSalvar").addEventListener("click", ()=>{
-    const nome = document.getElementById("nome").value.trim();
-    const telefone = document.getElementById("telefone").value.trim();
-    const valor = parseFloat(document.getElementById("valor").value) || 0;
-    const horario = document.getElementById("horario").value;
-    if(!nome || !telefone){alert("⚠️ Preencha nome e telefone!"); return;}
-    setAlunoFirebase({id:editandoId, nome, telefone, valor, pago:false, data:new Date().toISOString(), horario});
-    editandoId = null;
-    document.getElementById("nome").value="";
-    document.getElementById("telefone").value="";
-    document.getElementById("valor").value="";
+  // Adicionar contatos apenas no horário 8:00
+  if(getAlunos().length===0){
+    const contatos=[
+      "Gustavo - 7583009378","LUAN , MADERADA - 75982819958","Dandan Auto Elétrica - 7181192057",
+      "Rogerio jordan - 7182454233","Theus Senna😼CARATECA - 7193063739","Kay Luz - 7581002782",
+      "Márcia Laiane ✨ - 7581119429","Tinaairam Airam - 7581142791","Valdir Lima PARUDO - 7581330340",
+      "Uilson Martins personal - 7581429991","Josi🔥PAO DE MEL - 7581467974","Linodosarau - 7581508130",
+      "Laícia Moreira - 7581711462","Renan - 7581823405","Jaqueline♡ - 7581856226",
+      "Carlos Lima - 7581949719","TecSound_assistencia_tecn - 7582084265","Eduardo - 7582453054",
+      "Edvania Santos - 7582464789","Gabriel - 7582465947","Igor Miranda - 7582686171",
+      "Sinho - 7582915059","Mirele - 7582993778","Dayana 👑 - 7583093078",
+      "Ninho - 7583557058","Yanna Novais | Advogada - 7583605100","Ô Marras, CABELIHO - 7588367138",
+      "Paredinha_do_gordinho MATHEUS - 7598444619","Nice - 7598847923","♥︎Juliana De Cassia♥︎ - 7599726736"
+    ];
+    const novos=contatos.map(c=>{
+      const [nome,telefone]=c.split("-");
+      return {id:Date.now()+Math.random(),nome:nome.trim(),telefone:telefone.replace(/\D/g,""),valor:0,pago:false,data:new Date().toISOString(),horario:"8"};
+    });
+    setAlunos(novos);
+  }
+
+  document.getElementById("btnSalvar").addEventListener("click",()=>{
+    const nome=document.getElementById("nome").value.trim();
+    const telefone=document.getElementById("telefone").value.trim();
+    const valor=parseFloat(document.getElementById("valor").value)||0;
+    const horario=document.getElementById("horario").value;
+    if(!nome||!telefone){alert("⚠️ Preencha nome e telefone!"); return;}
+    salvarAluno(nome,telefone,valor,horario);
   });
 
   document.getElementById("btnEnviar").addEventListener("click", ()=>{
-    const nome = document.getElementById("nome").value.trim();
-    const telefone = document.getElementById("telefone").value.trim();
-    const valor = parseFloat(document.getElementById("valor").value) || 0;
-    if(!nome || !telefone){alert("⚠️ Preencha nome e telefone!"); return;}
-    enviarWhatsApp(nome, telefone, valor);
+    const nome=document.getElementById("nome").value.trim();
+    const telefone=document.getElementById("telefone").value.trim();
+    const valor=parseFloat(document.getElementById("valor").value)||0;
+    if(!nome||!telefone){alert("⚠️ Preencha nome e telefone!"); return;}
+    enviarWhatsApp(nome,telefone,valor);
   });
 
-  document.getElementById("buscaAluno").addEventListener("input",(e)=> carregarListasOnline(e.target.value));
+  document.getElementById("buscaAluno").addEventListener("input",(e)=>carregarListas(e.target.value));
+
+  carregarListas();
 });
 </script>
 </body>
