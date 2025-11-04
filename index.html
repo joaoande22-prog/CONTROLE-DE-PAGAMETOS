@@ -40,7 +40,7 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
   body{padding:40px;}
   #formCadastro{flex-direction:row;flex-wrap:wrap;align-items:flex-start;}
   input,select,button{width:auto;flex:1;min-width:140px;}
-  #btnSalvar,#btnEnviar{width:auto;}
+  #btnSalvar,#btnEnviar,#btnExportar,#btnImportar{width:auto;}
   #listasHorarios{flex-direction:row;}
   .section{padding:15px;}
 }
@@ -64,6 +64,8 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
     <option value="8">8:00</option>
   </select>
   <button id="btnSalvar">💾 Salvar / Editar</button>
+  <button id="btnExportar">⬆️ Exportar Dados</button>
+  <button id="btnImportar">⬇️ Importar Dados</button>
 </div>
 
 <input type="text" id="buscaAluno" placeholder="🔍 Buscar aluno...">
@@ -79,7 +81,7 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
   </div>
   <div class="section">
     <h3>🕗 Horário 8:00</h3>
-    <h4> 🔴Pendentes</h4>
+    <h4>🔴 Pendentes</h4>
     <ul id="listaPendentes8"></ul>
     <h4>🟢 Pagos</h4>
     <ul id="listaPagos8"></ul>
@@ -108,16 +110,8 @@ function enviarWhatsApp(nome, telefone, valor){
   const numero = telefone.replace(/\D/g,'');
   const mensagemBase = mensagens[Math.floor(Math.random()*mensagens.length)];
   const mensagem = mensagemBase.replace("[NOME]", nome) + ` | Valor: R$${valor.toFixed(2)}`;
-
-  const linkBusiness = `intent://send?phone=55${numero}&text=${encodeURIComponent(mensagem)}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;end`;
-  const linkNormal = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
-
-  if (/Android/i.test(navigator.userAgent)) {
-    window.location.href = linkBusiness;
-    setTimeout(() => window.open(linkNormal, "_blank"), 1500);
-  } else {
-    window.open(linkNormal, "_blank");
-  }
+  const link = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
+  window.open(link, "_blank");
 }
 
 // === BANCO LOCAL ===
@@ -219,10 +213,32 @@ function limparCampos(){
   editandoId=null;
 }
 
+// === EXPORTAR / IMPORTAR ===
+function exportarDados() {
+  const alunos = getAlunos();
+  const json = JSON.stringify(alunos);
+  const base64 = btoa(json);
+  navigator.clipboard.writeText(base64);
+  alert("📋 Dados copiados! Envie esse código para seu celular (WhatsApp, e-mail, etc.)");
+}
+
+function importarDados() {
+  const base64 = prompt("📥 Cole aqui o código exportado:");
+  if (!base64) return;
+  try {
+    const json = atob(base64);
+    const alunos = JSON.parse(json);
+    setAlunos(alunos);
+    alert("✅ Dados importados com sucesso!");
+    carregarListas();
+  } catch (e) {
+    alert("❌ Código inválido. Verifique se colou tudo corretamente.");
+  }
+}
+
 // === INICIALIZAÇÃO ===
 document.addEventListener("DOMContentLoaded",()=>{
   atualizarCabecalhoData();
-
   document.getElementById("btnSalvar").addEventListener("click",()=>{
     const nome=document.getElementById("nome").value.trim();
     const telefone=document.getElementById("telefone").value.trim();
@@ -233,6 +249,8 @@ document.addEventListener("DOMContentLoaded",()=>{
   });
 
   document.getElementById("buscaAluno").addEventListener("input",(e)=>carregarListas(e.target.value));
+  document.getElementById("btnExportar").addEventListener("click", exportarDados);
+  document.getElementById("btnImportar").addEventListener("click", importarDados);
 
   carregarListas();
 });
