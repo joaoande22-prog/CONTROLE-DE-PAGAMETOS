@@ -17,7 +17,8 @@ input,select{background:#222;color:#fff;}
 input::placeholder,select{color:#aaa;}
 button{cursor:pointer;transition:0.3s;font-weight:bold;}
 #btnSalvar{background:#ff5722;color:#fff;}
-#btnEnviar{background:#25d366;color:#fff;margin-bottom:10px;}
+#btnExportar{background:#2196f3;color:#fff;}
+#btnImportar{background:#9c27b0;color:#fff;}
 button:hover{opacity:0.85;}
 #formCadastro{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
 #buscaAluno{width:100%;margin:15px 0;}
@@ -40,7 +41,7 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
   body{padding:40px;}
   #formCadastro{flex-direction:row;flex-wrap:wrap;align-items:flex-start;}
   input,select,button{width:auto;flex:1;min-width:140px;}
-  #btnSalvar,#btnEnviar,#btnExportar,#btnImportar{width:auto;}
+  #btnSalvar,#btnExportar,#btnImportar{width:auto;}
   #listasHorarios{flex-direction:row;}
   .section{padding:15px;}
 }
@@ -66,6 +67,7 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
   <button id="btnSalvar">💾 Salvar / Editar</button>
   <button id="btnExportar">⬆️ Exportar Dados</button>
   <button id="btnImportar">⬇️ Importar Dados</button>
+  <input type="file" id="inputImport" style="display:none" accept=".txt">
 </div>
 
 <input type="text" id="buscaAluno" placeholder="🔍 Buscar aluno...">
@@ -92,12 +94,11 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
 // === DATA ===
 function atualizarCabecalhoData(){
   const hoje=new Date();
-  const op={weekday:'long',year:'numeric',month:'long',day:'numeric'};
-  document.getElementById("dataHoje").innerText=hoje.toLocaleDateString('pt-BR',op);
+  document.getElementById("dataHoje").innerText=hoje.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 }
 
-// === MENSAGENS ALEATÓRIAS ===
-const mensagens = [
+// === MENSAGENS WHATSAPP ===
+const mensagens=[
   "Oi [NOME]! Lembrando do pagamento da mensalidade 💪🔥",
   "Fala [NOME]! Bora acertar a mensalidade pra continuar firme no kickboxing 🥊",
   "Ei [NOME], tudo bem? Só lembrando da mensalidade desse mês 😄",
@@ -105,13 +106,11 @@ const mensagens = [
   "Oi [NOME]! Hora de manter a energia e acertar a mensalidade 💪"
 ];
 
-// === WHATSAPP BUSINESS ===
-function enviarWhatsApp(nome, telefone, valor){
-  const numero = telefone.replace(/\D/g,'');
-  const mensagemBase = mensagens[Math.floor(Math.random()*mensagens.length)];
-  const mensagem = mensagemBase.replace("[NOME]", nome) + ` | Valor: R$${valor.toFixed(2)}`;
-  const link = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
-  window.open(link, "_blank");
+function enviarWhatsApp(nome,telefone,valor){
+  const numero=telefone.replace(/\D/g,'');
+  const msg=mensagens[Math.floor(Math.random()*mensagens.length)].replace("[NOME]",nome);
+  const texto=`${msg} | Valor: R$${valor.toFixed(2)}`;
+  window.open(`https://wa.me/55${numero}?text=${encodeURIComponent(texto)}`,"_blank");
 }
 
 // === BANCO LOCAL ===
@@ -123,135 +122,107 @@ let editandoId=null;
 function salvarAluno(nome,telefone,valor,horario){
   const alunos=getAlunos();
   if(editandoId){
-    const atualizados=alunos.map(a=>a.id===editandoId?{...a,nome,telefone,valor:valor||0,horario}:a);
-    setAlunos(atualizados);
-    editandoId=null;
-    alert("✏️ Aluno editado!");
+    const att=alunos.map(a=>a.id===editandoId?{...a,nome,telefone,valor,horario}:a);
+    setAlunos(att);editandoId=null;alert("✏️ Aluno editado!");
   }else{
-    alunos.push({id:Date.now(),nome,telefone,valor:valor||0,pago:false,data:new Date().toISOString(),horario});
-    setAlunos(alunos);
-    alert("✅ Aluno salvo!");
+    alunos.push({id:Date.now(),nome,telefone,valor,pago:false,data:new Date().toISOString(),horario});
+    setAlunos(alunos);alert("✅ Aluno salvo!");
   }
-  limparCampos();
-  carregarListas();
+  limparCampos();carregarListas();
 }
 
-// === EDITAR ===
+// === EDITAR / EXCLUIR ===
 function editarAluno(id){
-  const aluno=getAlunos().find(a=>a.id===id);
-  if(!aluno)return;
-  document.getElementById("nome").value=aluno.nome;
-  document.getElementById("telefone").value=aluno.telefone;
-  document.getElementById("valor").value=aluno.valor||"";
-  document.getElementById("horario").value=aluno.horario;
-  editandoId=id;
+  const a=getAlunos().find(x=>x.id===id);
+  if(!a)return;
+  nome.value=a.nome;telefone.value=a.telefone;valor.value=a.valor;horario.value=a.horario;editandoId=id;
 }
-
-// === MARCAR PAGO ===
-function marcarPago(id){
-  const alunos=getAlunos().map(a=>a.id===id?{...a,pago:true,data:new Date().toISOString()}:a);
-  setAlunos(alunos);
-  carregarListas();
-}
-
-// === EXCLUIR ===
 function excluirAluno(id){
-  if(!confirm("❌ Tem certeza que deseja excluir este aluno?"))return;
-  const alunos=getAlunos().filter(a=>a.id!==id);
-  setAlunos(alunos);
-  carregarListas();
+  if(confirm("❌ Tem certeza que deseja excluir este aluno?")){
+    setAlunos(getAlunos().filter(a=>a.id!==id));carregarListas();
+  }
 }
-
-// === COPIAR ===
-function copiarTexto(texto){navigator.clipboard.writeText(texto);alert("📋 Copiado!");}
+function marcarPago(id){
+  setAlunos(getAlunos().map(a=>a.id===id?{...a,pago:true}:a));carregarListas();
+}
+function copiarTexto(txt){navigator.clipboard.writeText(txt);alert("📋 Copiado!");}
 
 // === LISTAS ===
 function carregarListas(filtro=""){
   const alunos=getAlunos();
-  const pendentes7=alunos.filter(a=>!a.pago && a.horario==='7' && a.nome.toLowerCase().includes(filtro.toLowerCase()));
-  const pagos7=alunos.filter(a=>a.pago && a.horario==='7' && a.nome.toLowerCase().includes(filtro.toLowerCase()));
-  const pendentes8=alunos.filter(a=>!a.pago && a.horario==='8' && a.nome.toLowerCase().includes(filtro.toLowerCase()));
-  const pagos8=alunos.filter(a=>a.pago && a.horario==='8' && a.nome.toLowerCase().includes(filtro.toLowerCase()));
-  
-  function preencherLista(lista,alunos){
-    lista.innerHTML="";
-    alunos.forEach(a=>{
-      const li=document.createElement("li");
-      li.innerHTML=`<span>${a.nome} - ${a.valor>0?`R$${a.valor.toFixed(2)}`:"(sem valor)"} | Última: ${new Date(a.data).toLocaleDateString()}</span>
-      <div class="actions">
-        ${!a.pago?`<button class="whatsapp" onclick="enviarWhatsApp('${a.nome}','${a.telefone}',${a.valor||0})">💬 Enviar</button>
-        <button class="pago" onclick="marcarPago(${a.id})">✅ Pago</button>`:""}
-        <button class="editar" onclick="editarAluno(${a.id})">✏️ Editar</button>
-        <button class="copiar" onclick="copiarTexto('${a.telefone}')">📋 Copiar</button>
-        <button class="excluir" onclick="excluirAluno(${a.id})">🗑 Excluir</button>
-      </div>`;
-      lista.appendChild(li);
-    });
-  }
-  
-  preencherLista(document.getElementById("listaPendentes7"),pendentes7);
-  preencherLista(document.getElementById("listaPagos7"),pagos7);
-  preencherLista(document.getElementById("listaPendentes8"),pendentes8);
-  preencherLista(document.getElementById("listaPagos8"),pagos8);
-  atualizarResumoFinanceiro();
+  const f=a=>a.nome.toLowerCase().includes(filtro.toLowerCase());
+  const pend7=alunos.filter(a=>!a.pago&&a.horario==='7'&&f(a));
+  const pag7=alunos.filter(a=>a.pago&&a.horario==='7'&&f(a));
+  const pend8=alunos.filter(a=>!a.pago&&a.horario==='8'&&f(a));
+  const pag8=alunos.filter(a=>a.pago&&a.horario==='8'&&f(a));
+  preencher("listaPendentes7",pend7);preencher("listaPagos7",pag7);
+  preencher("listaPendentes8",pend8);preencher("listaPagos8",pag8);
+  atualizarResumo();
 }
 
-// === RESUMO ===
-function atualizarResumoFinanceiro(){
+function preencher(id,alunos){
+  const ul=document.getElementById(id);ul.innerHTML="";
+  alunos.forEach(a=>{
+    const li=document.createElement("li");
+    li.innerHTML=`<span>${a.nome} - ${a.telefone} - R$${a.valor.toFixed(2)}</span>
+    <div class="actions">
+      ${!a.pago?`<button class='whatsapp' onclick="enviarWhatsApp('${a.nome}','${a.telefone}',${a.valor})">💬 Enviar</button>
+      <button class='pago' onclick="marcarPago(${a.id})">✅ Pago</button>`:""}
+      <button class='editar' onclick="editarAluno(${a.id})">✏️ Editar</button>
+      <button class='copiar' onclick="copiarTexto('${a.telefone}')">📋 Copiar</button>
+      <button class='excluir' onclick="excluirAluno(${a.id})">🗑 Excluir</button>
+    </div>`;ul.appendChild(li);
+  });
+}
+
+function atualizarResumo(){
   const alunos=getAlunos();
-  const totalPendentes=alunos.filter(a=>!a.pago).reduce((acc,a)=>acc+(a.valor||0),0);
-  const totalPagos=alunos.filter(a=>a.pago).reduce((acc,a)=>acc+(a.valor||0),0);
-  document.getElementById("resumoFinanceiro").innerText=`🔴 Pendentes: R$${totalPendentes.toFixed(2)} | 🟢 Pagos: R$${totalPagos.toFixed(2)}`;
+  const pend=alunos.filter(a=>!a.pago).reduce((s,a)=>s+a.valor,0);
+  const pag=alunos.filter(a=>a.pago).reduce((s,a)=>s+a.valor,0);
+  document.getElementById("resumoFinanceiro").innerText=`🔴 Pendentes: R$${pend.toFixed(2)} | 🟢 Pagos: R$${pag.toFixed(2)}`;
 }
 
-// === LIMPAR ===
-function limparCampos(){
-  document.getElementById("nome").value="";
-  document.getElementById("telefone").value="";
-  document.getElementById("valor").value="";
-  document.getElementById("horario").value="8";
-  editandoId=null;
-}
+function limparCampos(){nome.value="";telefone.value="";valor.value="";horario.value="7";editandoId=null;}
 
 // === EXPORTAR / IMPORTAR ===
-function exportarDados() {
-  const alunos = getAlunos();
-  const json = JSON.stringify(alunos);
-  const base64 = btoa(json);
-  navigator.clipboard.writeText(base64);
-  alert("📋 Dados copiados! Envie esse código para seu celular (WhatsApp, e-mail, etc.)");
+function exportarArquivo(){
+  const alunos=getAlunos();
+  if(!alunos.length){alert("⚠️ Nenhum aluno para exportar!");return;}
+  const json=JSON.stringify(alunos,null,2);
+  const blob=new Blob([json],{type:"text/plain;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download="alunos_kickboxing.txt";a.click();
+  URL.revokeObjectURL(url);
+  alert("✅ Arquivo exportado! Envie e importe onde quiser.");
 }
 
-function importarDados() {
-  const base64 = prompt("📥 Cole aqui o código exportado:");
-  if (!base64) return;
-  try {
-    const json = atob(base64);
-    const alunos = JSON.parse(json);
-    setAlunos(alunos);
-    alert("✅ Dados importados com sucesso!");
-    carregarListas();
-  } catch (e) {
-    alert("❌ Código inválido. Verifique se colou tudo corretamente.");
-  }
-}
+function importarArquivo(){document.getElementById("inputImport").click();}
+document.getElementById("inputImport").addEventListener("change",e=>{
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      let t=ev.target.result.trim();
+      if(t.charCodeAt(0)===0xFEFF)t=t.slice(1);
+      if(!t.startsWith("[")&&!t.startsWith("{"))t=atob(t);
+      const alunos=JSON.parse(t);
+      if(!Array.isArray(alunos))throw new Error();
+      setAlunos(alunos);carregarListas();alert("✅ Dados importados com sucesso!");
+    }catch{alert("❌ Arquivo inválido.");}
+  };
+  r.readAsText(file);
+});
 
 // === INICIALIZAÇÃO ===
 document.addEventListener("DOMContentLoaded",()=>{
   atualizarCabecalhoData();
-  document.getElementById("btnSalvar").addEventListener("click",()=>{
-    const nome=document.getElementById("nome").value.trim();
-    const telefone=document.getElementById("telefone").value.trim();
-    const valor=parseFloat(document.getElementById("valor").value)||0;
-    const horario=document.getElementById("horario").value;
-    if(!nome||!telefone){alert("⚠️ Preencha nome e telefone!"); return;}
-    salvarAluno(nome,telefone,valor,horario);
-  });
-
-  document.getElementById("buscaAluno").addEventListener("input",(e)=>carregarListas(e.target.value));
-  document.getElementById("btnExportar").addEventListener("click", exportarDados);
-  document.getElementById("btnImportar").addEventListener("click", importarDados);
-
+  btnSalvar.onclick=()=>{const n=nome.value.trim(),t=telefone.value.trim(),v=parseFloat(valor.value)||0,h=horario.value;
+    if(!n||!t){alert("⚠️ Preencha nome e telefone!");return;}salvarAluno(n,t,v,h);
+  };
+  buscaAluno.oninput=e=>carregarListas(e.target.value);
+  btnExportar.onclick=exportarArquivo;
+  btnImportar.onclick=importarArquivo;
   carregarListas();
 });
 </script>
