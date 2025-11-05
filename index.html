@@ -42,8 +42,8 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
   #formCadastro{flex-direction:row;flex-wrap:wrap;align-items:flex-start;}
   input,select,button{width:auto;flex:1;min-width:140px;}
   #btnSalvar,#btnExportar,#btnImportar{width:auto;}
-  #listasHorarios{flex-direction:row;}
-  .section{padding:15px;}
+  #listasHorarios{flex-direction:row;flex-wrap:wrap;}
+  .section{padding:15px;width:48%;}
 }
 </style>
 </head>
@@ -63,6 +63,8 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
   <select id="horario">
     <option value="7">7:00</option>
     <option value="8">8:00</option>
+    <option value="feminino">Kickboxing Feminino</option>
+    <option value="kids">Kickboxing Kids</option>
   </select>
   <button id="btnSalvar">💾 Salvar / Editar</button>
   <button id="btnExportar">⬆️ Exportar Dados</button>
@@ -81,12 +83,29 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
     <h4>🟢 Pagos</h4>
     <ul id="listaPagos7"></ul>
   </div>
+
   <div class="section">
     <h3>🕗 Horário 8:00</h3>
     <h4>🔴 Pendentes</h4>
     <ul id="listaPendentes8"></ul>
     <h4>🟢 Pagos</h4>
     <ul id="listaPagos8"></ul>
+  </div>
+
+  <div class="section">
+    <h3>🥊 Kickboxing Feminino</h3>
+    <h4>🔴 Pendentes</h4>
+    <ul id="listaPendentesFeminino"></ul>
+    <h4>🟢 Pagos</h4>
+    <ul id="listaPagosFeminino"></ul>
+  </div>
+
+  <div class="section">
+    <h3>🧒 Kickboxing Kids</h3>
+    <h4>🔴 Pendentes</h4>
+    <ul id="listaPendentesKids"></ul>
+    <h4>🟢 Pagos</h4>
+    <ul id="listaPagosKids"></ul>
   </div>
 </div>
 
@@ -151,12 +170,20 @@ function copiarTexto(txt){navigator.clipboard.writeText(txt);alert("📋 Copiado
 function carregarListas(filtro=""){
   const alunos=getAlunos();
   const f=a=>a.nome.toLowerCase().includes(filtro.toLowerCase());
+
   const pend7=alunos.filter(a=>!a.pago&&a.horario==='7'&&f(a));
   const pag7=alunos.filter(a=>a.pago&&a.horario==='7'&&f(a));
   const pend8=alunos.filter(a=>!a.pago&&a.horario==='8'&&f(a));
   const pag8=alunos.filter(a=>a.pago&&a.horario==='8'&&f(a));
+  const pendF=alunos.filter(a=>!a.pago&&a.horario==='feminino'&&f(a));
+  const pagF=alunos.filter(a=>a.pago&&a.horario==='feminino'&&f(a));
+  const pendK=alunos.filter(a=>!a.pago&&a.horario==='kids'&&f(a));
+  const pagK=alunos.filter(a=>a.pago&&a.horario==='kids'&&f(a));
+
   preencher("listaPendentes7",pend7);preencher("listaPagos7",pag7);
   preencher("listaPendentes8",pend8);preencher("listaPagos8",pag8);
+  preencher("listaPendentesFeminino",pendF);preencher("listaPagosFeminino",pagF);
+  preencher("listaPendentesKids",pendK);preencher("listaPagosKids",pagK);
   atualizarResumo();
 }
 
@@ -194,7 +221,7 @@ function exportarArquivo(){
   const a=document.createElement("a");
   a.href=url;a.download="alunos_kickboxing.txt";a.click();
   URL.revokeObjectURL(url);
-  alert("✅ Arquivo exportado! Envie e importe onde quiser.");
+  alert("✅ Arquivo exportado!");
 }
 
 function importarArquivo(){document.getElementById("inputImport").click();}
@@ -208,7 +235,7 @@ document.getElementById("inputImport").addEventListener("change",e=>{
       if(!t.startsWith("[")&&!t.startsWith("{"))t=atob(t);
       const alunos=JSON.parse(t);
       if(!Array.isArray(alunos))throw new Error();
-      setAlunos(alunos);carregarListas();alert("✅ Dados importados com sucesso!");
+      setAlunos(alunos);carregarListas();alert("✅ Dados importados!");
     }catch{alert("❌ Arquivo inválido.");}
   };
   r.readAsText(file);
