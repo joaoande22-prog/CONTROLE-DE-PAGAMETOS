@@ -170,15 +170,16 @@ function copiarTexto(txt){navigator.clipboard.writeText(txt);alert("📋 Copiado
 function carregarListas(filtro=""){
   const alunos=getAlunos();
   const f=a=>a.nome.toLowerCase().includes(filtro.toLowerCase());
+  const ordenar=lista=>lista.sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
 
-  const pend7=alunos.filter(a=>!a.pago&&a.horario==='7'&&f(a));
-  const pag7=alunos.filter(a=>a.pago&&a.horario==='7'&&f(a));
-  const pend8=alunos.filter(a=>!a.pago&&a.horario==='8'&&f(a));
-  const pag8=alunos.filter(a=>a.pago&&a.horario==='8'&&f(a));
-  const pendF=alunos.filter(a=>!a.pago&&a.horario==='feminino'&&f(a));
-  const pagF=alunos.filter(a=>a.pago&&a.horario==='feminino'&&f(a));
-  const pendK=alunos.filter(a=>!a.pago&&a.horario==='kids'&&f(a));
-  const pagK=alunos.filter(a=>a.pago&&a.horario==='kids'&&f(a));
+  const pend7=ordenar(alunos.filter(a=>!a.pago&&a.horario==='7'&&f(a)));
+  const pag7=ordenar(alunos.filter(a=>a.pago&&a.horario==='7'&&f(a)));
+  const pend8=ordenar(alunos.filter(a=>!a.pago&&a.horario==='8'&&f(a)));
+  const pag8=ordenar(alunos.filter(a=>a.pago&&a.horario==='8'&&f(a)));
+  const pendF=ordenar(alunos.filter(a=>!a.pago&&a.horario==='feminino'&&f(a)));
+  const pagF=ordenar(alunos.filter(a=>a.pago&&a.horario==='feminino'&&f(a)));
+  const pendK=ordenar(alunos.filter(a=>!a.pago&&a.horario==='kids'&&f(a)));
+  const pagK=ordenar(alunos.filter(a=>a.pago&&a.horario==='kids'&&f(a)));
 
   preencher("listaPendentes7",pend7);preencher("listaPagos7",pag7);
   preencher("listaPendentes8",pend8);preencher("listaPagos8",pag8);
@@ -244,6 +245,33 @@ document.getElementById("inputImport").addEventListener("change",e=>{
 // === INICIALIZAÇÃO ===
 document.addEventListener("DOMContentLoaded",()=>{
   atualizarCabecalhoData();
+
+  // Adicionar automaticamente os novos alunos (7:00)
+  const novos7 = [
+    "Thaila - +55 71 8378-5519",
+    "Any - +55 75 8113-6166",
+    "Edineia C Damasceno - +55 75 8163-7115",
+    "Jaqueline♡ - +55 75 8185-6226",
+    "Francys - +55 75 8186-6703",
+    "Gabriela Oliveira - +55 75 8188-8153",
+    "Luciana Suzart - +55 75 8201-8349",
+    "Macielle Sena - +55 75 8216-2999",
+    "S.A.M.Y🐞 - ",
+    "Manoelvitor202001 - +55 75 8283-1230",
+    "Simone Silva - +55 75 8320-1447",
+    "Roberval Batista 🙂 - +55 75 8346-4409",
+    "Luiz - +55 75 8358-4628",
+    "Adriano Severino 👼🏾 - +55 75 8362-8676"
+  ];
+  let alunos=getAlunos();
+  novos7.forEach(txt=>{
+    const [nome,telefone] = txt.split(" - ");
+    if(!alunos.some(a=>a.nome.toLowerCase()===nome.toLowerCase() && a.horario==="7")){
+      alunos.push({id:Date.now()+Math.random(),nome,telefone,valor:0,pago:false,data:new Date().toISOString(),horario:"7"});
+    }
+  });
+  setAlunos(alunos);
+
   btnSalvar.onclick=()=>{const n=nome.value.trim(),t=telefone.value.trim(),v=parseFloat(valor.value)||0,h=horario.value;
     if(!n||!t){alert("⚠️ Preencha nome e telefone!");return;}salvarAluno(n,t,v,h);
   };
