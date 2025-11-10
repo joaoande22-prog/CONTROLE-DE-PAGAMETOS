@@ -1,214 +1,400 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kickboxing - Cobrança</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kickboxing Cobrança - WhatsApp Business</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Montserrat', sans-serif;
-}
-
-body {
-  background: #f2f2f2;
-  padding: 20px;
-}
-
-.container {
-  max-width: 800px;
-  margin: auto;
-  background: white;
-  padding: 20px;
-  border-radius: 20px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #222;
-}
-
-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-input {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-}
-
-button {
-  padding: 10px 15px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-button:hover { opacity: 0.8; }
-
-.add-btn { background: #007bff; color: white; }
-.pago-btn { background: #28a745; color: white; }
-.voltar-btn { background: #ffc107; color: black; }
-.excluir-btn { background: #dc3545; color: white; }
-.enviar-btn { background: #25d366; color: white; }
-.editar-btn { background: #6f42c1; color: white; }
-.copiar-btn { background: #17a2b8; color: white; }
-
-.lista {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.card {
-  background: #fafafa;
-  border: 1px solid #ddd;
-  padding: 15px;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.card p { margin: 0; }
-
-.botoes {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Montserrat',sans-serif;}
+body{background:linear-gradient(135deg,#000,#1a1a1a);color:#f1f1f1;padding:20px;}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;text-align:center;}
+header img{width:70px;height:auto;border-radius:10px;}
+header h1{color:#ffcc00;font-size:18px;margin-top:10px;}
+h2{text-align:center;color:#ffcc00;margin-bottom:10px;}
+#qrcode{text-align:center;margin-bottom:18px;}
+#qrcode img{width:200px;height:200px;border-radius:10px;box-shadow:0 0 15px rgba(255,204,0,0.35);}
+small{display:block;color:#bbb;margin-top:6px;}
+input,select,button{padding:12px;margin:5px 0;border-radius:10px;border:none;font-size:16px;width:100%;}
+input,select{background:#222;color:#fff;}
+input::placeholder,select{color:#aaa;}
+button{cursor:pointer;transition:0.25s;font-weight:bold;}
+#btnSalvar{background:#ff5722;color:#fff;}
+#btnExportar{background:#2196f3;color:#fff;}
+#btnImportar{background:#9c27b0;color:#fff;}
+button:hover{opacity:0.9;}
+#formCadastro{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+#listasHorarios{display:flex;flex-direction:column;gap:20px;}
+.section{flex:1;background:#111;padding:12px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.6);}
+ul{list-style:none;padding:0;}
+li{margin:6px 0;padding:12px;border-radius:10px;display:flex;flex-direction:column;gap:8px;background:#222;box-shadow:0 2px 6px rgba(0,0,0,0.6);}
+li span{font-size:15px;font-weight:500;}
+.actions{display:flex;flex-wrap:wrap;gap:6px;}
+.actions button{flex:1;padding:8px;border-radius:8px;font-size:14px;font-weight:bold;color:#fff;min-width:80px;}
+.actions button.whatsapp{background:#25d366;}
+.actions button.pago{background:#ff9800;}
+.actions button.copiar{background:#2196f3;}
+.actions button.excluir{background:#f44336;}
+.actions button.editar{background:#9c27b0;}
+#resumoFinanceiro{font-weight:bold;margin-bottom:15px;text-align:center;}
+h3{color:#ffcc00;margin-bottom:10px;text-align:center;}
+h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
+@media(min-width:700px){
+  body{padding:36px;}
+  #formCadastro{flex-direction:row;flex-wrap:wrap;align-items:flex-start;}
+  input,select,button{width:auto;flex:1;min-width:140px;}
+  #btnSalvar,#btnExportar,#btnImportar{width:auto;}
+  #listasHorarios{flex-direction:row;flex-wrap:wrap;}
+  .section{padding:15px;width:48%;}
 }
 </style>
 </head>
 <body>
+<header>
+  <img src="Imagem do WhatsApp de 2025-10-27 à(s) 08.55.56_18b7c426.jpg" alt="Logo Kickboxing">
+  <h1 id="dataHoje"></h1>
+</header>
 
-<div class="container">
-  <h1>Controle de Cobrança 🥊</h1>
+<h2>🔥 Kickboxing Cobrança - WhatsApp Business</h2>
 
-  <form id="form">
-    <input type="text" id="nome" placeholder="Nome do aluno" required>
-    <input type="text" id="telefone" placeholder="Telefone (somente números)" required>
-    <input type="number" id="valor" placeholder="Valor (R$)" required>
-    <button type="submit" class="add-btn">Adicionar</button>
-  </form>
+<!-- QR FIXO (mostra payload atual, atualiza ao alterar "valor") -->
+<div id="qrcode">
+  <h4>💳 Pagamento via PIX (QR direto)</h4>
+  <img id="imgQr" src="" alt="QR Code PIX EMV">
+  <small id="infoQr">Chave: +55 75 98235-2788 · Recebedor: Kickboxing</small>
+</div>
 
-  <h2>Pendentes</h2>
-  <div id="pendentes" class="lista"></div>
+<div id="formCadastro">
+  <input type="text" id="nome" placeholder="Nome do aluno">
+  <input type="text" id="telefone" placeholder="Telefone (somente números)">
+  <input type="number" id="valor" placeholder="Valor da mensalidade (R$)">
+  <select id="horario">
+    <option value="7">7:00</option>
+    <option value="8">8:00</option>
+    <option value="feminino">Kickboxing Feminino</option>
+    <option value="kids">Kickboxing Kids</option>
+  </select>
+  <button id="btnSalvar">💾 Salvar / Editar</button>
+  <button id="btnExportar">⬆️ Exportar Dados</button>
+  <button id="btnImportar">⬇️ Importar Dados</button>
+  <input type="file" id="inputImport" style="display:none" accept=".txt">
+</div>
 
-  <h2>Pagos</h2>
-  <div id="pagos" class="lista"></div>
+<input type="text" id="buscaAluno" placeholder="🔍 Buscar aluno...">
+<div id="resumoFinanceiro">🔴 Pendentes: R$0.00 | 🟢 Pagos: R$0.00</div>
+
+<div id="listasHorarios">
+  <div class="section">
+    <h3>🕖 Horário 7:00</h3>
+    <h4>🔴 Pendentes</h4>
+    <ul id="listaPendentes7"></ul>
+    <h4>🟢 Pagos</h4>
+    <ul id="listaPagos7"></ul>
+  </div>
+
+  <div class="section">
+    <h3>🕗 Horário 8:00</h3>
+    <h4>🔴 Pendentes</h4>
+    <ul id="listaPendentes8"></ul>
+    <h4>🟢 Pagos</h4>
+    <ul id="listaPagos8"></ul>
+  </div>
+
+  <div class="section">
+    <h3>🥊 Kickboxing Feminino</h3>
+    <h4>🔴 Pendentes</h4>
+    <ul id="listaPendentesFeminino"></ul>
+    <h4>🟢 Pagos</h4>
+    <ul id="listaPagosFeminino"></ul>
+  </div>
+
+  <div class="section">
+    <h3>🧒 Kickboxing Kids</h3>
+    <h4>🔴 Pendentes</h4>
+    <ul id="listaPendentesKids"></ul>
+    <h4>🟢 Pagos</h4>
+    <ul id="listaPagosKids"></ul>
+  </div>
 </div>
 
 <script>
-const pendentesDiv = document.getElementById('pendentes');
-const pagosDiv = document.getElementById('pagos');
-const form = document.getElementById('form');
+// ====== CONFIG PIX (usamos a chave fornecida) ======
+const PIX_CHAVE = "5575982352788"; // +55 75 98235-2788 sem sinais
+const RECEBEDOR_NOME = "Kickboxing"; // texto que aparece no QR
+const RECEBEDOR_CIDADE = "SALVADOR"; // cidade (padrão para EMV)
+const DEFAULT_TXID = "*"; // pode ser usado para identificar transação (usamos *)
+/* ===================================================================
+   Funções para montar payload EMV (Padrão BR Code / PIX) e calcular CRC16
+   Baseado no padrão EMV 200 (00.., 26.. merchant info, 59 nome, 60 cidade, 62 adicional)
+   =================================================================== */
 
-let alunos = JSON.parse(localStorage.getItem('alunos')) || [];
-
-form.addEventListener('submit', e => {
-  e.preventDefault();
-  const nome = document.getElementById('nome').value.trim();
-  const telefone = document.getElementById('telefone').value.trim();
-  const valor = parseFloat(document.getElementById('valor').value);
-  if (!nome || !telefone || !valor) return alert("Preencha todos os campos!");
-  alunos.push({ nome, telefone, valor, pago: false });
-  salvar();
-  form.reset();
-  render();
-});
-
-function salvar() {
-  localStorage.setItem('alunos', JSON.stringify(alunos));
+function zpad(val,len){ return String(val).padStart(len,'0'); }
+function montaCampo(id,valor){
+  if(valor===undefined || valor===null) return "";
+  const v = String(valor);
+  return id + zpad(v.length,2) + v;
 }
 
-function render() {
-  pendentesDiv.innerHTML = '';
-  pagosDiv.innerHTML = '';
-  alunos.forEach((aluno, i) => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <p><strong>${aluno.nome}</strong></p>
-      <p>📞 ${aluno.telefone}</p>
-      <p>💰 R$${aluno.valor.toFixed(2)}</p>
-      <div class="botoes">
-        ${aluno.pago
-          ? `<button class="voltar-btn" onclick="voltar(${i})">↩️ Voltar</button>`
-          : `<button class="pago-btn" onclick="pagar(${i})">✅ Pago</button>
-             <button class="enviar-btn" onclick="enviarWhatsApp(${i})">💬 Enviar</button>`}
-        <button class="editar-btn" onclick="editar(${i})">✏️ Editar</button>
-        <button class="excluir-btn" onclick="excluir(${i})">🗑 Excluir</button>
-        <button class="copiar-btn" onclick="copiar(${i})">📋 Copiar</button>
-      </div>
-    `;
-    (aluno.pago ? pagosDiv : pendentesDiv).appendChild(card);
+// CRC16-CCITT (polynomial 0x1021) — implementação em JS
+function crc16ccitt(input) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < input.length; i++) {
+    crc ^= input.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4,'0');
+}
+
+// Monta payload EMV (sem CRC) e depois adiciona CRC (tag 63)
+function gerarPayloadPix({chave, nomeRecebedor, cidade, valor, txid}) {
+  // 00 - Payload Format Indicator
+  let payload = "";
+  payload += montaCampo("00","01");
+  // 01 - Merchant Account Information: vamos criar subtag 26 com GUI + chave
+  // subtag 00 = GUI, 01 = chave
+  const gui = "BR.GOV.BCB.PIX"; // padrão
+  let mai = "";
+  mai += montaCampo("00", gui);
+  mai += montaCampo("01", chave);
+  // opcional: descrição (02), não usamos
+  payload += montaCampo("26", mai);
+  // 52 Merchant Category Code (default 0000)
+  payload += montaCampo("52","0000");
+  // 53 Transaction Currency - 986 = BRL
+  payload += montaCampo("53","986");
+  // 54 Transaction amount (opcional) -> valor como string com 2 decimais
+  if(valor !== undefined && valor !== null && Number(valor) > 0) {
+    // garantir formato 0.00 com ponto
+    const v = Number(valor).toFixed(2);
+    payload += montaCampo("54", v);
+  }
+  // 58 country code
+  payload += montaCampo("58","BR");
+  // 59 merchant name (max 25 chars recommended)
+  payload += montaCampo("59", nomeRecebedor.substring(0,25));
+  // 60 merchant city
+  payload += montaCampo("60", (cidade||"").substring(0,15));
+  // 62 Additional data field template - aqui colocamos txid (05)
+  const add = montaCampo("05", txid || DEFAULT_TXID);
+  payload += montaCampo("62", add);
+  // 63 CRC - tag + length (04) + CRC value (calculado)
+  const payloadForCrc = payload + "63" + "04";
+  const crc = crc16ccitt(payloadForCrc);
+  payload += montaCampo("63", crc);
+  return payload;
+}
+
+// Gera URL da imagem do QR (api.qrserver.com) com payload EMV (URL-encoded)
+function gerarUrlQr(payload) {
+  const base = "https://api.qrserver.com/v1/create-qr-code/";
+  // tamanho 300x300 e margem
+  const params = new URLSearchParams({
+    size: "300x300",
+    data: payload
+  });
+  return `${base}?${params.toString()}`;
+}
+
+// ====== UTILIDADES LOCAIS (localStorage) ======
+function getAlunos(){ return JSON.parse(localStorage.getItem("alunos")||"[]"); }
+function setAlunos(a){ localStorage.setItem("alunos", JSON.stringify(a)); }
+
+// ====== FUNÇÕES DA UI E INTEGRAÇÃO ======
+let editandoId = null;
+
+function atualizarCabecalhoData(){
+  const hoje = new Date();
+  document.getElementById("dataHoje").innerText = hoje.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+function atualizarQrVisivel(valor) {
+  // gera payload com valor (se valor vazio -> sem valor, pagador digita)
+  const payload = gerarPayloadPix({
+    chave: PIX_CHAVE,
+    nomeRecebedor: RECEBEDOR_NOME,
+    cidade: RECEBEDOR_CIDADE,
+    valor: (valor && Number(valor) > 0) ? Number(valor) : null,
+    txid: DEFAULT_TXID
+  });
+  document.getElementById("imgQr").src = gerarUrlQr(payload);
+  document.getElementById("infoQr").innerText = `Chave: +55 75 98235-2788 · Recebedor: ${RECEBEDOR_NOME} · Valor: ${valor ? ("R$ " + Number(valor).toFixed(2)) : "— (a digitar)"}`;
+  return payload;
+}
+
+function salvarAluno(nome,telefone,valor,horario){
+  const alunos = getAlunos();
+  if(editandoId){
+    const att = alunos.map(a => a.id===editandoId ? {...a, nome, telefone, valor: Number(valor)||0, horario } : a);
+    setAlunos(att); editandoId = null; alert("✏️ Aluno editado!");
+  } else {
+    alunos.push({ id: Date.now(), nome, telefone, valor: Number(valor)||0, pago:false, data:new Date().toISOString(), horario});
+    setAlunos(alunos); alert("✅ Aluno salvo!");
+  }
+  limparCampos(); carregarListas();
+}
+
+function editarAluno(id){
+  const a = getAlunos().find(x=>x.id===id);
+  if(!a) return;
+  document.getElementById("nome").value = a.nome;
+  document.getElementById("telefone").value = a.telefone;
+  document.getElementById("valor").value = a.valor;
+  document.getElementById("horario").value = a.horario;
+  editandoId = id;
+  // atualizar QR visível com valor do aluno (ajuda visual)
+  atualizarQrVisivel(a.valor);
+}
+
+function excluirAluno(id){
+  if(confirm("❌ Tem certeza que deseja excluir este aluno?")){
+    setAlunos(getAlunos().filter(a=>a.id!==id));
+    carregarListas();
+  }
+}
+function marcarPago(id){
+  setAlunos(getAlunos().map(a=>a.id===id?{...a,pago:true}:a));
+  carregarListas();
+}
+function copiarTexto(txt){ navigator.clipboard.writeText(txt); alert("📋 Copiado!"); }
+
+function carregarListas(filtro=""){
+  const alunos = getAlunos();
+  const f = a => a.nome.toLowerCase().includes(filtro.toLowerCase());
+  const ordenar = l => l.sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
+
+  const pend7 = ordenar(alunos.filter(a=>!a.pago && a.horario==='7' && f(a)));
+  const pag7 = ordenar(alunos.filter(a=>a.pago && a.horario==='7' && f(a)));
+  const pend8 = ordenar(alunos.filter(a=>!a.pago && a.horario==='8' && f(a)));
+  const pag8 = ordenar(alunos.filter(a=>a.pago && a.horario==='8' && f(a)));
+  const pendF = ordenar(alunos.filter(a=>!a.pago && a.horario==='feminino' && f(a)));
+  const pagF = ordenar(alunos.filter(a=>a.pago && a.horario==='feminino' && f(a)));
+  const pendK = ordenar(alunos.filter(a=>!a.pago && a.horario==='kids' && f(a)));
+  const pagK = ordenar(alunos.filter(a=>a.pago && a.horario==='kids' && f(a)));
+
+  preencher("listaPendentes7",pend7); preencher("listaPagos7",pag7);
+  preencher("listaPendentes8",pend8); preencher("listaPagos8",pag8);
+  preencher("listaPendentesFeminino",pendF); preencher("listaPagosFeminino",pagF);
+  preencher("listaPendentesKids",pendK); preencher("listaPagosKids",pagK);
+  atualizarResumo();
+}
+
+function preencher(id, alunos){
+  const ul = document.getElementById(id);
+  ul.innerHTML = "";
+  alunos.forEach(a=>{
+    const li = document.createElement("li");
+    const valorFmt = Number(a.valor||0).toFixed(2);
+    li.innerHTML = `<span>${a.nome} - ${a.telefone} - R$${valorFmt}</span>
+      <div class="actions">
+        ${!a.pago?`<button class='whatsapp' onclick="enviarWhatsApp('${escapeJs(a.nome)}','${escapeJs(a.telefone)}',${a.valor})">💬 Enviar</button>
+        <button class='pago' onclick="marcarPago(${a.id})">✅ Pago</button>`:""}
+        <button class='editar' onclick="editarAluno(${a.id})">✏️ Editar</button>
+        <button class='copiar' onclick="copiarTexto('${a.telefone}')">📋 Copiar</button>
+        <button class='excluir' onclick="excluirAluno(${a.id})">🗑 Excluir</button>
+      </div>`;
+    ul.appendChild(li);
   });
 }
 
-function pagar(i) {
-  alunos[i].pago = true;
-  salvar();
-  render();
+function atualizarResumo(){
+  const alunos = getAlunos();
+  const pend = alunos.filter(a=>!a.pago).reduce((s,a)=>s+(Number(a.valor)||0),0);
+  const pag = alunos.filter(a=>a.pago).reduce((s,a)=>s+(Number(a.valor)||0),0);
+  document.getElementById("resumoFinanceiro").innerText = `🔴 Pendentes: R$${pend.toFixed(2)} | 🟢 Pagos: R$${pag.toFixed(2)}`;
 }
 
-function voltar(i) {
-  alunos[i].pago = false;
-  salvar();
-  render();
+function limparCampos(){
+  document.getElementById("nome").value = "";
+  document.getElementById("telefone").value = "";
+  document.getElementById("valor").value = "";
+  document.getElementById("horario").value = "7";
+  editandoId = null;
+  atualizarQrVisivel(null);
 }
 
-function excluir(i) {
-  if (confirm("Deseja excluir este aluno?")) {
-    alunos.splice(i, 1);
-    salvar();
-    render();
-  }
+// escape simples para inserir strings em onclick
+function escapeJs(s){
+  return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/\n/g,'\\n');
 }
 
-function editar(i) {
-  const novoNome = prompt("Novo nome:", alunos[i].nome);
-  if (novoNome !== null) alunos[i].nome = novoNome;
-  const novoTel = prompt("Novo telefone:", alunos[i].telefone);
-  if (novoTel !== null) alunos[i].telefone = novoTel;
-  const novoVal = prompt("Novo valor:", alunos[i].valor);
-  if (novoVal !== null && !isNaN(parseFloat(novoVal))) alunos[i].valor = parseFloat(novoVal);
-  salvar();
-  render();
-}
-
-function copiar(i) {
-  const texto = `Aluno: ${alunos[i].nome} - R$${alunos[i].valor.toFixed(2)} - ${alunos[i].telefone}`;
-  navigator.clipboard.writeText(texto);
-  alert("Copiado!");
-}
-
-function enviarWhatsApp(i) {
-  const a = alunos[i];
-  const msg = `Olá ${a.nome}! 👋
-Hoje é o último dia estipulado para o pagamento da sua mensalidade 🥊
-
-💰 Valor: R$${a.valor.toFixed(2)}
+// ========== Função principal de envio: gera payload EMV com valor do aluno e envia WhatsApp ==========
+function enviarWhatsApp(nome, telefone, valor){
+  const numero = String(telefone||'').replace(/\D/g,'');
+  if(!numero){ alert('Telefone inválido para o aluno.'); return; }
+  const msgBase = `Olá ${nome}! hoje é o último dia estipulado para o pagamento da sua mensalidade, efetue o pagamento hoje e fique em dia. 🥊`;
+  const valorNum = Number(valor) || 0;
+  // gerar payload EMV com valor
+  const payload = gerarPayloadPix({
+    chave: PIX_CHAVE,
+    nomeRecebedor: RECEBEDOR_NOME,
+    cidade: RECEBEDOR_CIDADE,
+    valor: valorNum > 0 ? valorNum : null,
+    txid: String(Date.now()).slice(-20)
+  });
+  const linkQr = gerarUrlQr(payload);
+  const texto = `${msgBase}
+💰 Valor: R$${valorNum.toFixed(2)}
 📲 Pagamento via PIX: +55 75 98235-2788
-👤 Professor Daniel - Irará
-
-Após o pagamento, envie o comprovante por aqui ✅`;
-  const numero = a.telefone.replace(/\D/g, '');
-  window.open(`https://wa.me/55${numero}?text=${encodeURIComponent(msg)}`, "_blank");
+🔗 Abra o QR Code para pagar: ${linkQr}`;
+  window.open(`https://wa.me/55${numero}?text=${encodeURIComponent(texto)}`, "_blank");
 }
 
-render();
-</script>
+// ========== Export / Import (mantive seu comportamento) ==========
+function exportarArquivo(){
+  const alunos = getAlunos();
+  if(!alunos.length){ alert("⚠️ Nenhum aluno para exportar!"); return; }
+  const json = JSON.stringify(alunos,null,2);
+  const blob = new Blob([json], {type:"text/plain;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "alunos_kickboxing.txt"; a.click();
+  URL.revokeObjectURL(url);
+  alert("✅ Arquivo exportado!");
+}
+function importarArquivo(){ document.getElementById("inputImport").click(); }
+document.getElementById("inputImport").addEventListener("change", e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try{
+      let t = ev.target.result.trim();
+      if(t.charCodeAt(0)===0xFEFF) t = t.slice(1);
+      if(!t.startsWith("[") && !t.startsWith("{")) t = atob(t);
+      const alunos = JSON.parse(t);
+      if(!Array.isArray(alunos)) throw new Error();
+      setAlunos(alunos); carregarListas(); alert("✅ Dados importados!");
+    }catch{
+      alert("❌ Arquivo inválido.");
+    }
+  };
+  r.readAsText(file);
+});
 
+// ====== Inicialização ======
+document.addEventListener("DOMContentLoaded", () => {
+  atualizarCabecalhoData();
+  // se quiser, atualizar QR com valor do campo (antes de salvar)
+  const valorInput = document.getElementById("valor");
+  valorInput.addEventListener("input", e => {
+    atualizarQrVisivel(e.target.value);
+  });
+  document.getElementById("btnSalvar").onclick = () => {
+    const n = document.getElementById("nome").value.trim();
+    const t = document.getElementById("telefone").value.trim();
+    const v = document.getElementById("valor").value.trim();
+    const h = document.getElementById("horario").value;
+    if(!n || !t){ alert("⚠️ Preencha nome e telefone!"); return; }
+    salvarAluno(n,t,Number(v)||0,h);
+  };
+  document.getElementById("buscaAluno").oninput = e => carregarListas(e.target.value);
+  document.getElementById("btnExportar").onclick = exportarArquivo;
+  document.getElementById("btnImportar").onclick = importarArquivo;
+  // inicia QR visível sem valor
+  atualizarQrVisivel(null);
+  carregarListas();
+});
+</script>
 </body>
 </html>
