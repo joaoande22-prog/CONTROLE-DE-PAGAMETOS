@@ -12,9 +12,9 @@ header{display:flex;align-items:center;justify-content:space-between;margin-bott
 header img{width:70px;height:auto;border-radius:10px;}
 header h1{color:#ffcc00;font-size:18px;margin-top:10px;}
 h2{text-align:center;color:#ffcc00;margin-bottom:10px;}
-#qrcode{text-align:center;margin-bottom:18px;}
-#qrcode img{width:200px;height:200px;border-radius:10px;box-shadow:0 0 15px rgba(255,204,0,0.35);}
-small{display:block;color:#bbb;margin-top:6px;}
+#pixInfo{text-align:center;margin-bottom:18px;}
+#pixInfo h4{color:#ffcc00;margin-bottom:6px;}
+#pixInfo small{display:block;color:#bbb;}
 input,select,button{padding:12px;margin:5px 0;border-radius:10px;border:none;font-size:16px;width:100%;}
 input,select{background:#222;color:#fff;}
 input::placeholder,select{color:#aaa;}
@@ -57,17 +57,14 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
 
 <h2>🔥 Kickboxing Cobrança - WhatsApp Business</h2>
 
-<!-- QR FIXO (mostra payload atual, atualiza ao alterar "valor") -->
-<div id="qrcode">
-  <h4>💳 Pagamento via PIX (QR direto)</h4>
-  <img id="imgQr" src="" alt="QR Code PIX EMV">
-  <small id="infoQr">Chave: +55 75 98235-2788 · Recebedor: Kickboxing</small>
+<div id="pixInfo">
+  <h4>💳 Pagamento via PIX</h4>
+  <small>Chave PIX: <b>+55 75 98235-2788</b></small>
 </div>
 
 <div id="formCadastro">
   <input type="text" id="nome" placeholder="Nome do aluno">
   <input type="text" id="telefone" placeholder="Telefone (somente números)">
-  <input type="number" id="valor" placeholder="Valor da mensalidade (R$)">
   <select id="horario">
     <option value="7">7:00</option>
     <option value="8">8:00</option>
@@ -81,7 +78,7 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
 </div>
 
 <input type="text" id="buscaAluno" placeholder="🔍 Buscar aluno...">
-<div id="resumoFinanceiro">🔴 Pendentes: R$0.00 | 🟢 Pagos: R$0.00</div>
+<div id="resumoFinanceiro">🔴 Pendentes | 🟢 Pagos</div>
 
 <div id="listasHorarios">
   <div class="section">
@@ -118,90 +115,9 @@ h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
 </div>
 
 <script>
-// ====== CONFIG PIX (usamos a chave fornecida) ======
-const PIX_CHAVE = "5575982352788"; // +55 75 98235-2788 sem sinais
-const RECEBEDOR_NOME = "Kickboxing"; // texto que aparece no QR
-const RECEBEDOR_CIDADE = "SALVADOR"; // cidade (padrão para EMV)
-const DEFAULT_TXID = "*"; // pode ser usado para identificar transação (usamos *)
-/* ===================================================================
-   Funções para montar payload EMV (Padrão BR Code / PIX) e calcular CRC16
-   Baseado no padrão EMV 200 (00.., 26.. merchant info, 59 nome, 60 cidade, 62 adicional)
-   =================================================================== */
-
-function zpad(val,len){ return String(val).padStart(len,'0'); }
-function montaCampo(id,valor){
-  if(valor===undefined || valor===null) return "";
-  const v = String(valor);
-  return id + zpad(v.length,2) + v;
-}
-
-// CRC16-CCITT (polynomial 0x1021) — implementação em JS
-function crc16ccitt(input) {
-  let crc = 0xFFFF;
-  for (let i = 0; i < input.length; i++) {
-    crc ^= input.charCodeAt(i) << 8;
-    for (let j = 0; j < 8; j++) {
-      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
-    }
-  }
-  return crc.toString(16).toUpperCase().padStart(4,'0');
-}
-
-// Monta payload EMV (sem CRC) e depois adiciona CRC (tag 63)
-function gerarPayloadPix({chave, nomeRecebedor, cidade, valor, txid}) {
-  // 00 - Payload Format Indicator
-  let payload = "";
-  payload += montaCampo("00","01");
-  // 01 - Merchant Account Information: vamos criar subtag 26 com GUI + chave
-  // subtag 00 = GUI, 01 = chave
-  const gui = "BR.GOV.BCB.PIX"; // padrão
-  let mai = "";
-  mai += montaCampo("00", gui);
-  mai += montaCampo("01", chave);
-  // opcional: descrição (02), não usamos
-  payload += montaCampo("26", mai);
-  // 52 Merchant Category Code (default 0000)
-  payload += montaCampo("52","0000");
-  // 53 Transaction Currency - 986 = BRL
-  payload += montaCampo("53","986");
-  // 54 Transaction amount (opcional) -> valor como string com 2 decimais
-  if(valor !== undefined && valor !== null && Number(valor) > 0) {
-    // garantir formato 0.00 com ponto
-    const v = Number(valor).toFixed(2);
-    payload += montaCampo("54", v);
-  }
-  // 58 country code
-  payload += montaCampo("58","BR");
-  // 59 merchant name (max 25 chars recommended)
-  payload += montaCampo("59", nomeRecebedor.substring(0,25));
-  // 60 merchant city
-  payload += montaCampo("60", (cidade||"").substring(0,15));
-  // 62 Additional data field template - aqui colocamos txid (05)
-  const add = montaCampo("05", txid || DEFAULT_TXID);
-  payload += montaCampo("62", add);
-  // 63 CRC - tag + length (04) + CRC value (calculado)
-  const payloadForCrc = payload + "63" + "04";
-  const crc = crc16ccitt(payloadForCrc);
-  payload += montaCampo("63", crc);
-  return payload;
-}
-
-// Gera URL da imagem do QR (api.qrserver.com) com payload EMV (URL-encoded)
-function gerarUrlQr(payload) {
-  const base = "https://api.qrserver.com/v1/create-qr-code/";
-  // tamanho 300x300 e margem
-  const params = new URLSearchParams({
-    size: "300x300",
-    data: payload
-  });
-  return `${base}?${params.toString()}`;
-}
-
-// ====== UTILIDADES LOCAIS (localStorage) ======
 function getAlunos(){ return JSON.parse(localStorage.getItem("alunos")||"[]"); }
 function setAlunos(a){ localStorage.setItem("alunos", JSON.stringify(a)); }
 
-// ====== FUNÇÕES DA UI E INTEGRAÇÃO ======
 let editandoId = null;
 
 function atualizarCabecalhoData(){
@@ -209,27 +125,13 @@ function atualizarCabecalhoData(){
   document.getElementById("dataHoje").innerText = hoje.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 }
 
-function atualizarQrVisivel(valor) {
-  // gera payload com valor (se valor vazio -> sem valor, pagador digita)
-  const payload = gerarPayloadPix({
-    chave: PIX_CHAVE,
-    nomeRecebedor: RECEBEDOR_NOME,
-    cidade: RECEBEDOR_CIDADE,
-    valor: (valor && Number(valor) > 0) ? Number(valor) : null,
-    txid: DEFAULT_TXID
-  });
-  document.getElementById("imgQr").src = gerarUrlQr(payload);
-  document.getElementById("infoQr").innerText = `Chave: +55 75 98235-2788 · Recebedor: ${RECEBEDOR_NOME} · Valor: ${valor ? ("R$ " + Number(valor).toFixed(2)) : "— (a digitar)"}`;
-  return payload;
-}
-
-function salvarAluno(nome,telefone,valor,horario){
+function salvarAluno(nome,telefone,horario){
   const alunos = getAlunos();
   if(editandoId){
-    const att = alunos.map(a => a.id===editandoId ? {...a, nome, telefone, valor: Number(valor)||0, horario } : a);
+    const att = alunos.map(a => a.id===editandoId ? {...a, nome, telefone, horario } : a);
     setAlunos(att); editandoId = null; alert("✏️ Aluno editado!");
   } else {
-    alunos.push({ id: Date.now(), nome, telefone, valor: Number(valor)||0, pago:false, data:new Date().toISOString(), horario});
+    alunos.push({ id: Date.now(), nome, telefone, pago:false, data:new Date().toISOString(), horario});
     setAlunos(alunos); alert("✅ Aluno salvo!");
   }
   limparCampos(); carregarListas();
@@ -240,11 +142,8 @@ function editarAluno(id){
   if(!a) return;
   document.getElementById("nome").value = a.nome;
   document.getElementById("telefone").value = a.telefone;
-  document.getElementById("valor").value = a.valor;
   document.getElementById("horario").value = a.horario;
   editandoId = id;
-  // atualizar QR visível com valor do aluno (ajuda visual)
-  atualizarQrVisivel(a.valor);
 }
 
 function excluirAluno(id){
@@ -277,7 +176,6 @@ function carregarListas(filtro=""){
   preencher("listaPendentes8",pend8); preencher("listaPagos8",pag8);
   preencher("listaPendentesFeminino",pendF); preencher("listaPagosFeminino",pagF);
   preencher("listaPendentesKids",pendK); preencher("listaPagosKids",pagK);
-  atualizarResumo();
 }
 
 function preencher(id, alunos){
@@ -285,10 +183,9 @@ function preencher(id, alunos){
   ul.innerHTML = "";
   alunos.forEach(a=>{
     const li = document.createElement("li");
-    const valorFmt = Number(a.valor||0).toFixed(2);
-    li.innerHTML = `<span>${a.nome} - ${a.telefone} - R$${valorFmt}</span>
+    li.innerHTML = `<span>${a.nome} - ${a.telefone}</span>
       <div class="actions">
-        ${!a.pago?`<button class='whatsapp' onclick="enviarWhatsApp('${escapeJs(a.nome)}','${escapeJs(a.telefone)}',${a.valor})">💬 Enviar</button>
+        ${!a.pago?`<button class='whatsapp' onclick="enviarWhatsApp('${escapeJs(a.nome)}','${escapeJs(a.telefone)}')">💬 Enviar</button>
         <button class='pago' onclick="marcarPago(${a.id})">✅ Pago</button>`:""}
         <button class='editar' onclick="editarAluno(${a.id})">✏️ Editar</button>
         <button class='copiar' onclick="copiarTexto('${a.telefone}')">📋 Copiar</button>
@@ -298,50 +195,26 @@ function preencher(id, alunos){
   });
 }
 
-function atualizarResumo(){
-  const alunos = getAlunos();
-  const pend = alunos.filter(a=>!a.pago).reduce((s,a)=>s+(Number(a.valor)||0),0);
-  const pag = alunos.filter(a=>a.pago).reduce((s,a)=>s+(Number(a.valor)||0),0);
-  document.getElementById("resumoFinanceiro").innerText = `🔴 Pendentes: R$${pend.toFixed(2)} | 🟢 Pagos: R$${pag.toFixed(2)}`;
-}
-
 function limparCampos(){
   document.getElementById("nome").value = "";
   document.getElementById("telefone").value = "";
-  document.getElementById("valor").value = "";
   document.getElementById("horario").value = "7";
   editandoId = null;
-  atualizarQrVisivel(null);
 }
 
-// escape simples para inserir strings em onclick
 function escapeJs(s){
   return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/\n/g,'\\n');
 }
 
-// ========== Função principal de envio: gera payload EMV com valor do aluno e envia WhatsApp ==========
-function enviarWhatsApp(nome, telefone, valor){
+function enviarWhatsApp(nome, telefone){
   const numero = String(telefone||'').replace(/\D/g,'');
   if(!numero){ alert('Telefone inválido para o aluno.'); return; }
-  const msgBase = `Olá ${nome}! hoje é o último dia estipulado para o pagamento da sua mensalidade, efetue o pagamento hoje e fique em dia. 🥊`;
-  const valorNum = Number(valor) || 0;
-  // gerar payload EMV com valor
-  const payload = gerarPayloadPix({
-    chave: PIX_CHAVE,
-    nomeRecebedor: RECEBEDOR_NOME,
-    cidade: RECEBEDOR_CIDADE,
-    valor: valorNum > 0 ? valorNum : null,
-    txid: String(Date.now()).slice(-20)
-  });
-  const linkQr = gerarUrlQr(payload);
-  const texto = `${msgBase}
-💰 Valor: R$${valorNum.toFixed(2)}
-📲 Pagamento via PIX: +55 75 98235-2788
-🔗 Abra o QR Code para pagar: ${linkQr}`;
+  const texto = `Olá ${nome}! Hoje é o último dia estipulado para o pagamento da sua mensalidade, efetue o pagamento hoje e fique em dia. 🥊
+
+💳 Chave PIX: +55 75 98235-2788`;
   window.open(`https://wa.me/55${numero}?text=${encodeURIComponent(texto)}`, "_blank");
 }
 
-// ========== Export / Import (mantive seu comportamento) ==========
 function exportarArquivo(){
   const alunos = getAlunos();
   if(!alunos.length){ alert("⚠️ Nenhum aluno para exportar!"); return; }
@@ -372,27 +245,18 @@ document.getElementById("inputImport").addEventListener("change", e=>{
   r.readAsText(file);
 });
 
-// ====== Inicialização ======
 document.addEventListener("DOMContentLoaded", () => {
   atualizarCabecalhoData();
-  // se quiser, atualizar QR com valor do campo (antes de salvar)
-  const valorInput = document.getElementById("valor");
-  valorInput.addEventListener("input", e => {
-    atualizarQrVisivel(e.target.value);
-  });
   document.getElementById("btnSalvar").onclick = () => {
     const n = document.getElementById("nome").value.trim();
     const t = document.getElementById("telefone").value.trim();
-    const v = document.getElementById("valor").value.trim();
     const h = document.getElementById("horario").value;
     if(!n || !t){ alert("⚠️ Preencha nome e telefone!"); return; }
-    salvarAluno(n,t,Number(v)||0,h);
+    salvarAluno(n,t,h);
   };
   document.getElementById("buscaAluno").oninput = e => carregarListas(e.target.value);
   document.getElementById("btnExportar").onclick = exportarArquivo;
   document.getElementById("btnImportar").onclick = importarArquivo;
-  // inicia QR visível sem valor
-  atualizarQrVisivel(null);
   carregarListas();
 });
 </script>
