@@ -1,264 +1,175 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Kickboxing Cobrança - WhatsApp Business</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kickboxing Cobrança</title>
+
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Montserrat',sans-serif;}
-body{background:linear-gradient(135deg,#000,#1a1a1a);color:#f1f1f1;padding:20px;}
-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;text-align:center;}
-header img{width:70px;height:auto;border-radius:10px;}
-header h1{color:#ffcc00;font-size:18px;margin-top:10px;}
-h2{text-align:center;color:#ffcc00;margin-bottom:10px;}
-#pixInfo{text-align:center;margin-bottom:18px;}
-#pixInfo h4{color:#ffcc00;margin-bottom:6px;}
-#pixInfo small{display:block;color:#bbb;}
-input,select,button{padding:12px;margin:5px 0;border-radius:10px;border:none;font-size:16px;width:100%;}
-input,select{background:#222;color:#fff;}
-input::placeholder,select{color:#aaa;}
-button{cursor:pointer;transition:0.25s;font-weight:bold;}
-#btnSalvar{background:#ff5722;color:#fff;}
-#btnExportar{background:#2196f3;color:#fff;}
-#btnImportar{background:#9c27b0;color:#fff;}
-button:hover{opacity:0.9;}
-#formCadastro{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
-#listasHorarios{display:flex;flex-direction:column;gap:20px;}
-.section{flex:1;background:#111;padding:12px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.6);}
-ul{list-style:none;padding:0;}
-li{margin:6px 0;padding:12px;border-radius:10px;display:flex;flex-direction:column;gap:8px;background:#222;box-shadow:0 2px 6px rgba(0,0,0,0.6);}
-li span{font-size:15px;font-weight:500;}
-.actions{display:flex;flex-wrap:wrap;gap:6px;}
-.actions button{flex:1;padding:8px;border-radius:8px;font-size:14px;font-weight:bold;color:#fff;min-width:80px;}
-.actions button.whatsapp{background:#25d366;}
-.actions button.pago{background:#ff9800;}
-.actions button.copiar{background:#2196f3;}
-.actions button.excluir{background:#f44336;}
-.actions button.editar{background:#9c27b0;}
-#resumoFinanceiro{font-weight:bold;margin-bottom:15px;text-align:center;}
-h3{color:#ffcc00;margin-bottom:10px;text-align:center;}
-h4{margin:6px 0;color:#fff;text-align:center;font-size:14px;}
-@media(min-width:700px){
-  body{padding:36px;}
-  #formCadastro{flex-direction:row;flex-wrap:wrap;align-items:flex-start;}
-  input,select,button{width:auto;flex:1;min-width:140px;}
-  #btnSalvar,#btnExportar,#btnImportar{width:auto;}
-  #listasHorarios{flex-direction:row;flex-wrap:wrap;}
-  .section{padding:15px;width:48%;}
+body{font-family:Arial;background:#0f0f0f;color:#fff;padding:20px}
+h2{color:#ffcc00;text-align:center}
+input,select,button{
+  width:100%;padding:12px;margin:5px 0;
+  border-radius:8px;border:none;font-size:15px
 }
+input,select{background:#222;color:#fff}
+button{font-weight:bold;cursor:pointer}
+#salvar{background:#ff5722}
+#enviarTodos{background:#25d366;margin:15px 0}
+.card{background:#1c1c1c;padding:10px;border-radius:10px;margin-bottom:10px}
+.actions button{margin-top:5px;width:100%}
+.whats{background:#25d366}
+.pago{background:#ff9800}
+.editar{background:#9c27b0}
+.excluir{background:#f44336}
 </style>
 </head>
+
 <body>
-<header>
-  <img src="Imagem do WhatsApp de 2025-10-27 à(s) 08.55.56_18b7c426.jpg" alt="Logo Kickboxing">
-  <h1 id="dataHoje"></h1>
-</header>
 
-<h2>🔥 Kickboxing Cobrança - WhatsApp Business</h2>
+<h2>🥊 Kickboxing Cobrança</h2>
 
-<div id="pixInfo">
-  <h4>💳 Pagamento via PIX</h4>
-  <small>Chave PIX: <b>+55 75 98235-2788</b></small>
-</div>
+<input id="nome" placeholder="Nome do aluno">
+<input id="telefone" placeholder="Telefone com DDD">
+<select id="horario">
+  <option value="7">7:00</option>
+  <option value="8">8:00</option>
+  <option value="feminino">Feminino</option>
+  <option value="kids">Kids</option>
+</select>
 
-<div id="formCadastro">
-  <input type="text" id="nome" placeholder="Nome do aluno">
-  <input type="text" id="telefone" placeholder="Telefone (somente números)">
-  <select id="horario">
-    <option value="7">7:00</option>
-    <option value="8">8:00</option>
-    <option value="feminino">Kickboxing Feminino</option>
-    <option value="kids">Kickboxing Kids</option>
-  </select>
-  <button id="btnSalvar">💾 Salvar / Editar</button>
-  <button id="btnExportar">⬆️ Exportar Dados</button>
-  <button id="btnImportar">⬇️ Importar Dados</button>
-  <input type="file" id="inputImport" style="display:none" accept=".txt">
-</div>
+<button id="salvar">💾 Salvar</button>
 
-<input type="text" id="buscaAluno" placeholder="🔍 Buscar aluno...">
-<div id="resumoFinanceiro">🔴 Pendentes | 🟢 Pagos</div>
+<input id="busca" placeholder="🔍 Buscar aluno">
 
-<div id="listasHorarios">
-  <div class="section">
-    <h3>🕖 Horário 7:00</h3>
-    <h4>🔴 Pendentes</h4>
-    <ul id="listaPendentes7"></ul>
-    <h4>🟢 Pagos</h4>
-    <ul id="listaPagos7"></ul>
-  </div>
+<!-- ✅ BOTÃO PARA TODOS -->
+<button id="enviarTodos">📤 ENVIAR PARA TODOS OS PENDENTES</button>
 
-  <div class="section">
-    <h3>🕗 Horário 8:00</h3>
-    <h4>🔴 Pendentes</h4>
-    <ul id="listaPendentes8"></ul>
-    <h4>🟢 Pagos</h4>
-    <ul id="listaPagos8"></ul>
-  </div>
-
-  <div class="section">
-    <h3>🥊 Kickboxing Feminino</h3>
-    <h4>🔴 Pendentes</h4>
-    <ul id="listaPendentesFeminino"></ul>
-    <h4>🟢 Pagos</h4>
-    <ul id="listaPagosFeminino"></ul>
-  </div>
-
-  <div class="section">
-    <h3>🧒 Kickboxing Kids</h3>
-    <h4>🔴 Pendentes</h4>
-    <ul id="listaPendentesKids"></ul>
-    <h4>🟢 Pagos</h4>
-    <ul id="listaPagosKids"></ul>
-  </div>
-</div>
+<div id="lista"></div>
 
 <script>
-function getAlunos(){ return JSON.parse(localStorage.getItem("alunos")||"[]"); }
-function setAlunos(a){ localStorage.setItem("alunos", JSON.stringify(a)); }
-
-let editandoId = null;
-
-function atualizarCabecalhoData(){
-  const hoje = new Date();
-  document.getElementById("dataHoje").innerText = hoje.toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-}
-
-function salvarAluno(nome,telefone,horario){
-  const alunos = getAlunos();
-  if(editandoId){
-    const att = alunos.map(a => a.id===editandoId ? {...a, nome, telefone, horario } : a);
-    setAlunos(att); editandoId = null; alert("✏️ Aluno editado!");
-  } else {
-    alunos.push({ id: Date.now(), nome, telefone, pago:false, data:new Date().toISOString(), horario});
-    setAlunos(alunos); alert("✅ Aluno salvo!");
-  }
-  limparCampos(); carregarListas();
-}
-
-function editarAluno(id){
-  const a = getAlunos().find(x=>x.id===id);
-  if(!a) return;
-  document.getElementById("nome").value = a.nome;
-  document.getElementById("telefone").value = a.telefone;
-  document.getElementById("horario").value = a.horario;
-  editandoId = id;
-}
-
-function excluirAluno(id){
-  if(confirm("❌ Tem certeza que deseja excluir este aluno?")){
-    setAlunos(getAlunos().filter(a=>a.id!==id));
-    carregarListas();
-  }
-}
-function marcarPago(id){
-  setAlunos(getAlunos().map(a=>a.id===id?{...a,pago:true}:a));
-  carregarListas();
-}
-function copiarTexto(txt){ navigator.clipboard.writeText(txt); alert("📋 Copiado!"); }
-
-function carregarListas(filtro=""){
-  const alunos = getAlunos();
-  const f = a => a.nome.toLowerCase().includes(filtro.toLowerCase());
-  const ordenar = l => l.sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
-
-  const pend7 = ordenar(alunos.filter(a=>!a.pago && a.horario==='7' && f(a)));
-  const pag7 = ordenar(alunos.filter(a=>a.pago && a.horario==='7' && f(a)));
-  const pend8 = ordenar(alunos.filter(a=>!a.pago && a.horario==='8' && f(a)));
-  const pag8 = ordenar(alunos.filter(a=>a.pago && a.horario==='8' && f(a)));
-  const pendF = ordenar(alunos.filter(a=>!a.pago && a.horario==='feminino' && f(a)));
-  const pagF = ordenar(alunos.filter(a=>a.pago && a.horario==='feminino' && f(a)));
-  const pendK = ordenar(alunos.filter(a=>!a.pago && a.horario==='kids' && f(a)));
-  const pagK = ordenar(alunos.filter(a=>a.pago && a.horario==='kids' && f(a)));
-
-  preencher("listaPendentes7",pend7); preencher("listaPagos7",pag7);
-  preencher("listaPendentes8",pend8); preencher("listaPagos8",pag8);
-  preencher("listaPendentesFeminino",pendF); preencher("listaPagosFeminino",pagF);
-  preencher("listaPendentesKids",pendK); preencher("listaPagosKids",pagK);
-}
-
-function preencher(id, alunos){
-  const ul = document.getElementById(id);
-  ul.innerHTML = "";
-  alunos.forEach(a=>{
-    const li = document.createElement("li");
-    li.innerHTML = `<span>${a.nome} - ${a.telefone}</span>
-      <div class="actions">
-        ${!a.pago?`<button class='whatsapp' onclick="enviarWhatsApp('${escapeJs(a.nome)}','${escapeJs(a.telefone)}')">💬 Enviar</button>
-        <button class='pago' onclick="marcarPago(${a.id})">✅ Pago</button>`:""}
-        <button class='editar' onclick="editarAluno(${a.id})">✏️ Editar</button>
-        <button class='copiar' onclick="copiarTexto('${a.telefone}')">📋 Copiar</button>
-        <button class='excluir' onclick="excluirAluno(${a.id})">🗑 Excluir</button>
-      </div>`;
-    ul.appendChild(li);
-  });
-}
-
-function limparCampos(){
-  document.getElementById("nome").value = "";
-  document.getElementById("telefone").value = "";
-  document.getElementById("horario").value = "7";
-  editandoId = null;
-}
-
-function escapeJs(s){
-  return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/\n/g,'\\n');
-}
-
-function enviarWhatsApp(nome, telefone){
-  const numero = String(telefone||'').replace(/\D/g,'');
-  if(!numero){ alert('Telefone inválido para o aluno.'); return; }
-  const texto = `Olá ${nome}! Hoje é o último dia estipulado para o pagamento da sua mensalidade, efetue o pagamento hoje e fique em dia. 🥊
-
-💳 Chave PIX: +55 75 98235-2788`;
-  window.open(`https://wa.me/55${numero}?text=${encodeURIComponent(texto)}`, "_blank");
-}
-
-function exportarArquivo(){
-  const alunos = getAlunos();
-  if(!alunos.length){ alert("⚠️ Nenhum aluno para exportar!"); return; }
-  const json = JSON.stringify(alunos,null,2);
-  const blob = new Blob([json], {type:"text/plain;charset=utf-8"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = "alunos_kickboxing.txt"; a.click();
-  URL.revokeObjectURL(url);
-  alert("✅ Arquivo exportado!");
-}
-function importarArquivo(){ document.getElementById("inputImport").click(); }
-document.getElementById("inputImport").addEventListener("change", e=>{
-  const file = e.target.files[0]; if(!file) return;
-  const r = new FileReader();
-  r.onload = ev => {
-    try{
-      let t = ev.target.result.trim();
-      if(t.charCodeAt(0)===0xFEFF) t = t.slice(1);
-      if(!t.startsWith("[") && !t.startsWith("{")) t = atob(t);
-      const alunos = JSON.parse(t);
-      if(!Array.isArray(alunos)) throw new Error();
-      setAlunos(alunos); carregarListas(); alert("✅ Dados importados!");
-    }catch{
-      alert("❌ Arquivo inválido.");
-    }
-  };
-  r.readAsText(file);
-});
-
 document.addEventListener("DOMContentLoaded", () => {
-  atualizarCabecalhoData();
-  document.getElementById("btnSalvar").onclick = () => {
-    const n = document.getElementById("nome").value.trim();
-    const t = document.getElementById("telefone").value.trim();
-    const h = document.getElementById("horario").value;
-    if(!n || !t){ alert("⚠️ Preencha nome e telefone!"); return; }
-    salvarAluno(n,t,h);
+
+  // ===== CONFIG WAHA =====
+  const WAHA_URL = "http://localhost:3000/api/sendText";
+  const WAHA_SESSION = "default";
+  const PIX = "+55 75 98235-2788";
+
+  let editId = null;
+
+  const get = () => JSON.parse(localStorage.getItem("alunos")||"[]");
+  const set = a => localStorage.setItem("alunos",JSON.stringify(a));
+
+  // ===== SALVAR =====
+  salvar.onclick = () => {
+    if(!nome.value || !telefone.value){
+      alert("Preencha tudo");
+      return;
+    }
+
+    const alunos = get();
+    if(editId){
+      alunos.forEach(a=>{
+        if(a.id===editId){
+          a.nome=nome.value;
+          a.telefone=telefone.value;
+          a.horario=horario.value;
+        }
+      });
+      editId=null;
+    } else {
+      alunos.push({
+        id:Date.now(),
+        nome:nome.value,
+        telefone:telefone.value,
+        horario:horario.value,
+        pago:false
+      });
+    }
+
+    set(alunos);
+    nome.value="";
+    telefone.value="";
+    horario.value="7";
+    render();
   };
-  document.getElementById("buscaAluno").oninput = e => carregarListas(e.target.value);
-  document.getElementById("btnExportar").onclick = exportarArquivo;
-  document.getElementById("btnImportar").onclick = importarArquivo;
-  carregarListas();
+
+  // ===== RENDER =====
+  function render(f=""){
+    lista.innerHTML="";
+    get()
+      .filter(a=>a.nome.toLowerCase().includes(f.toLowerCase()))
+      .forEach(a=>{
+        const d=document.createElement("div");
+        d.className="card";
+        d.innerHTML=`
+          <b>${a.nome}</b><br>${a.telefone} | ${a.horario}
+          <div class="actions">
+            ${!a.pago?`
+              <button class="whats" onclick="enviar('${a.nome}','${a.telefone}')">💬 Enviar</button>
+              <button class="pago" onclick="pagar(${a.id})">✅ Pago</button>
+            `:""}
+            <button class="editar" onclick="editar(${a.id})">✏️ Editar</button>
+            <button class="excluir" onclick="excluir(${a.id})">🗑 Excluir</button>
+          </div>
+        `;
+        lista.appendChild(d);
+      });
+  }
+
+  busca.oninput = e => render(e.target.value);
+
+  // ===== AÇÕES =====
+  window.editar = id => {
+    const a=get().find(x=>x.id===id);
+    nome.value=a.nome;
+    telefone.value=a.telefone;
+    horario.value=a.horario;
+    editId=id;
+  };
+
+  window.excluir = id => {
+    set(get().filter(a=>a.id!==id));
+    render();
+  };
+
+  window.pagar = id => {
+    set(get().map(a=>a.id===id?{...a,pago:true}:a));
+    render();
+  };
+
+  // ===== ENVIO INDIVIDUAL =====
+  window.enviar = (nome,telefone) => {
+    fetch(WAHA_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        session:WAHA_SESSION,
+        chatId:`55${telefone.replace(/\D/g,'')}@c.us`,
+        text:`Olá ${nome}! 🥊\n\nÚltimo dia para pagamento da mensalidade.\n\n💳 PIX: ${PIX}`
+      })
+    });
+  };
+
+  // ===== BOTÃO ENVIAR TODOS =====
+  enviarTodos.onclick = () => {
+    const pend = get().filter(a=>!a.pago);
+    if(!pend.length){
+      alert("Nenhum pendente");
+      return;
+    }
+    if(!confirm(`Enviar para ${pend.length} alunos?`)) return;
+
+    pend.forEach((a,i)=>{
+      setTimeout(()=>enviar(a.nome,a.telefone), i*2000);
+    });
+
+    alert("🚀 Envio iniciado");
+  };
+
+  render();
 });
 </script>
+
 </body>
 </html>
