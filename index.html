@@ -19,15 +19,31 @@ button{font-weight:bold;cursor:pointer}
 #salvar{background:#ff5722}
 #enviarTodos{background:#25d366;margin:15px 0}
 
-.card{background:#1c1c1c;padding:10px;border-radius:10px;margin-bottom:10px}
-.actions button{margin-top:5px;width:100%}
+.card{
+  background:#1c1c1c;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+  font-size:14px;
+}
+
+.actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  margin-top:8px;
+}
+.actions button{
+  padding:8px;
+  font-size:13px;
+  border-radius:6px;
+}
 
 .whats{background:#25d366}
 .pago{background:#ff9800}
 .editar{background:#9c27b0}
 .excluir{background:#f44336}
 
-/* HORÁRIOS */
 .horarios{
   display:flex;
   gap:8px;
@@ -53,10 +69,10 @@ button{font-weight:bold;cursor:pointer}
 <input id="telefone" placeholder="Telefone com DDD">
 
 <div class="horarios">
-  <button type="button" class="ativo" onclick="setHorario('7:00',this)">7:00</button>
-  <button type="button" onclick="setHorario('8:00',this)">8:00</button>
-  <button type="button" onclick="setHorario('Feminino',this)">Mulheres</button>
-  <button type="button" onclick="setHorario('Kids',this)">Crianças</button>
+  <button class="ativo" onclick="setHorario('7:00',this)">7:00</button>
+  <button onclick="setHorario('8:00',this)">8:00</button>
+  <button onclick="setHorario('Feminino',this)">Mulheres</button>
+  <button onclick="setHorario('Kids',this)">Crianças</button>
 </div>
 
 <input type="hidden" id="horario" value="7:00">
@@ -72,114 +88,130 @@ button{font-weight:bold;cursor:pointer}
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
 
-const WAHA_URL="http://localhost:3000/api/sendText";
-const WAHA_SESSION="default";
-const PIX="+55 75 98235-2788";
+const PIX = "+55 75 98235-2788";
+let editId = null;
+let filtroHorario = "7:00";
 
-let editId=null;
+const get = () => JSON.parse(localStorage.getItem("alunos") || "[]");
+const set = a => localStorage.setItem("alunos", JSON.stringify(a));
 
-const get=()=>JSON.parse(localStorage.getItem("alunos")||"[]");
-const set=a=>localStorage.setItem("alunos",JSON.stringify(a));
-
-window.setHorario=(v,btn)=>{
-  horario.value=v;
+window.setHorario = (v, btn) => {
+  horario.value = v;
+  filtroHorario = v;
   document.querySelectorAll(".horarios button")
-    .forEach(b=>b.classList.remove("ativo"));
+    .forEach(b => b.classList.remove("ativo"));
   btn.classList.add("ativo");
+  render(busca.value);
 };
 
-salvar.onclick=()=>{
-  if(!nome.value||!telefone.value)return alert("Preencha tudo");
+salvar.onclick = () => {
+  if(!nome.value || !telefone.value)
+    return alert("Preencha tudo");
 
-  const alunos=get();
+  const alunos = get();
 
   if(editId){
     alunos.forEach(a=>{
-      if(a.id===editId){
-        a.nome=nome.value;
-        a.telefone=telefone.value;
-        a.horario=horario.value;
+      if(a.id === editId){
+        a.nome = nome.value;
+        a.telefone = telefone.value;
+        a.horario = horario.value;
       }
     });
-    editId=null;
-  }else{
+    editId = null;
+  } else {
     alunos.push({
-      id:Date.now(),
-      nome:nome.value,
-      telefone:telefone.value,
-      horario:horario.value,
-      pago:false
+      id: Date.now(),
+      nome: nome.value,
+      telefone: telefone.value,
+      horario: horario.value,
+      pago: false
     });
   }
 
   set(alunos);
-  nome.value="";
-  telefone.value="";
-  horario.value="7:00";
-  render();
+  nome.value = "";
+  telefone.value = "";
+  horario.value = filtroHorario;
+  render(busca.value);
 };
 
 function render(f=""){
   lista.innerHTML="";
   get()
-  .filter(a=>a.nome.toLowerCase().includes(f.toLowerCase()))
-  .forEach(a=>{
-    const d=document.createElement("div");
-    d.className="card";
-    d.innerHTML=`
-      <b>${a.nome}</b><br>
-      ${a.telefone} | ${a.horario}
-      <div class="actions">
-        ${!a.pago?`
-          <button class="whats" onclick="enviar('${a.nome}','${a.telefone}')">💬 Enviar</button>
-          <button class="pago" onclick="pagar(${a.id})">✅ Pago</button>
-        `:""}
-        <button class="editar" onclick="editar(${a.id})">✏️ Editar</button>
-        <button class="excluir" onclick="excluir(${a.id})">🗑 Excluir</button>
-      </div>
-    `;
-    lista.appendChild(d);
-  });
+    .filter(a =>
+      a.horario === filtroHorario &&
+      a.nome.toLowerCase().includes(f.toLowerCase())
+    )
+    .forEach(a=>{
+      const d = document.createElement("div");
+      d.className = "card";
+      d.innerHTML = `
+        <b>${a.nome}</b><br>
+        ${a.telefone} | ${a.horario}
+        <div class="actions">
+          ${!a.pago ? `
+            <button class="whats" onclick="enviar('${a.nome}','${a.telefone}')">💬 Enviar</button>
+            <button class="pago" onclick="pagar(${a.id})">✅ Pago</button>
+          ` : ""}
+          <button class="editar" onclick="editar(${a.id})">✏️ Editar</button>
+          <button class="excluir" onclick="excluir(${a.id})">🗑 Excluir</button>
+        </div>
+      `;
+      lista.appendChild(d);
+    });
 }
 
-busca.oninput=e=>render(e.target.value);
+busca.oninput = e => render(e.target.value);
 
-window.editar=id=>{
-  const a=get().find(x=>x.id===id);
-  nome.value=a.nome;
-  telefone.value=a.telefone;
-  horario.value=a.horario;
-  editId=id;
+window.editar = id => {
+  const a = get().find(x=>x.id===id);
+  nome.value = a.nome;
+  telefone.value = a.telefone;
+  horario.value = a.horario;
+  filtroHorario = a.horario;
+  editId = id;
+
+  document.querySelectorAll(".horarios button")
+    .forEach(b=>{
+      b.classList.toggle("ativo",
+        b.textContent === a.horario ||
+        (b.textContent==="Mulheres" && a.horario==="Feminino") ||
+        (b.textContent==="Crianças" && a.horario==="Kids")
+      );
+    });
+
+  render(busca.value);
 };
 
-window.excluir=id=>{
+window.excluir = id => {
   set(get().filter(a=>a.id!==id));
-  render();
+  render(busca.value);
 };
 
-window.pagar=id=>{
+window.pagar = id => {
   set(get().map(a=>a.id===id?{...a,pago:true}:a));
-  render();
+  render(busca.value);
 };
 
-window.enviar=(nome,telefone)=>{
-  fetch(WAHA_URL,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      session:WAHA_SESSION,
-      chatId:`55${telefone.replace(/\D/g,'')}@c.us`,
-      text:`Olá ${nome}! 🥊\n\nÚltimo dia para pagamento da mensalidade.\n\n💳 PIX: ${PIX}`
-    })
-  });
+/* ✅ WHATSAPP WEB */
+window.enviar = (nome, telefone) => {
+  const numero = telefone.replace(/\D/g,"");
+  const msg = `Olá ${nome}! 🥊
+
+Último dia para pagamento da mensalidade.
+
+💳 PIX: ${PIX}`;
+
+  const url = `https://wa.me/55${numero}?text=${encodeURIComponent(msg)}`;
+  window.open(url, "_blank");
 };
 
-enviarTodos.onclick=()=>{
-  const pend=get().filter(a=>!a.pago);
-  if(!pend.length)return alert("Nenhum pendente");
-  if(!confirm(`Enviar para ${pend.length} alunos?`))return;
-  pend.forEach((a,i)=>setTimeout(()=>enviar(a.nome,a.telefone),i*2000));
-  alert("🚀 Envio iniciado");
+enviarTodos.onclick = () => {
+  const pend = get().filter(a=>!a.pago && a.horario===filtroHorario);
+  if(!pend.length) return alert("Nenhum pendente nesse horário");
+  if(!confirm(`Enviar para ${pend.length} alunos?`)) return;
+  pend.forEach((a,i)=>setTimeout(()=>enviar(a.nome,a.telefone),i*1500));
 };
 
 render();
