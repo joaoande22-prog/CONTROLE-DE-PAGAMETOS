@@ -4,84 +4,58 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Família Fênix – Cobranças</title>
-
 <style>
 body{font-family:Arial;background:#0f0f0f;color:#fff;padding:20px}
-h2{color:#ffcc00;text-align:center}
-
-input,button{
-  width:100%;padding:12px;margin:5px 0;
-  border-radius:8px;border:none;font-size:15px
-}
+h2{color:#ffcc00;text-align:center;display:flex;align-items:center;gap:10px}
+h2 img{height:40px;}
+input,button{padding:12px;margin:5px 0;border-radius:8px;border:none;font-size:15px;width:100%}
 input{background:#222;color:#fff}
 button{font-weight:bold;cursor:pointer}
-
 #salvar{background:#ff5722}
-#enviarTodos{background:#25d366;margin:15px 0}
-
-.card{
-  background:#1c1c1c;
-  padding:12px;
-  border-radius:10px;
-  margin-bottom:10px;
-  font-size:14px;
-}
-
-.actions{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:6px;
-  margin-top:8px;
-}
-.actions button{
-  padding:8px;
-  font-size:13px;
-  border-radius:6px;
-}
-
-.whats{background:#25d366}
-.pago{background:#ff9800}
-.editar{background:#9c27b0}
-.excluir{background:#f44336}
-
-.horarios{
-  display:flex;
-  gap:8px;
-  margin:10px 0;
-}
-.horarios button{
-  flex:1;
-  background:#222;
-  color:#fff;
-}
-.horarios button.ativo{
-  background:#ffcc00;
-  color:#000;
-}
+#enviarTodos{background:#25d366;margin:5px 0}
+#exportar{background:#2196f3;margin:5px 0}
+#importarArquivo{background:#ff9800;margin:5px 0}
+.card{background:#1c1c1c;padding:12px;border-radius:10px;margin-bottom:10px;font-size:14px}
+.card b{font-size:18px;} 
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:4px;margin-top:8px}
+.actions button{padding:6px;font-size:13px;border-radius:6px}
+.whats{background:#25d366}.pago{background:#ff9800}.editar{background:#9c27b0}.excluir{background:#f44336}
+.horarios{display:flex;gap:8px;margin:10px 0}
+.horarios button{flex:1;background:#222;color:#fff}
+.horarios button.ativo{background:#ffcc00;color:#000}
+#contador{margin:5px 0;color:#ffcc00;font-weight:bold;display:flex;gap:10px;flex-wrap:wrap}
+#listas{display:flex;gap:10px;flex-wrap:wrap}
+.lista-col{flex:1;min-width:300px}
+.lista-col h3{text-align:center;color:#ffcc00;margin-bottom:5px}
 </style>
 </head>
-
 <body>
 
-<h2>🔥 Família Fênix – Cobranças</h2>
+<h2>
+<img src="Imagem do WhatsApp de 2025-10-27 à(s) 08.55.56_18b7c426.jpg" alt="">🔥 Família Fênix – Cobranças
+</h2>
 
 <input id="nome" placeholder="Nome do aluno">
 <input id="telefone" placeholder="Telefone com DDD">
 
 <div class="horarios">
-  <button class="ativo" onclick="setHorario('7:00',this)">7:00</button>
-  <button onclick="setHorario('8:00',this)">8:00</button>
-  <button onclick="setHorario('Feminino',this)">Mulheres</button>
-  <button onclick="setHorario('Kids',this)">Crianças</button>
+  <button class="ativo" data-horario="7:00">7:00</button>
+  <button data-horario="8:00">8:00</button>
+  <button data-horario="Feminino">Mulheres</button>
+  <button data-horario="Kids">Crianças</button>
 </div>
 
-<input type="hidden" id="horario" value="7:00">
+<div id="contador"></div>
 
 <button id="salvar">💾 Salvar</button>
-
+<button id="exportar">💾 Exportar CSV (filtrado)</button>
+<input type="file" id="importarArquivo" accept=".csv,.txt">
 <input id="busca" placeholder="🔍 Buscar aluno">
 
-<div id="lista"></div>
+<div id="listas">
+  <div class="lista-col"><h3>Aguardando Pagamento</h3><div id="aguardando"></div></div>
+  <div class="lista-col"><h3>Pagos</h3><div id="pagos"></div></div>
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
@@ -90,122 +64,140 @@ const PIX = "+55 75 98235-2788";
 let editId = null;
 let filtroHorario = "7:00";
 
-const get = () => JSON.parse(localStorage.getItem("alunos") || "[]");
-const set = a => localStorage.setItem("alunos", JSON.stringify(a));
+const get = ()=>JSON.parse(localStorage.getItem("alunos")||"[]");
+const set = a=>localStorage.setItem("alunos",JSON.stringify(a));
 
-window.setHorario = (v, btn) => {
-  horario.value = v;
-  filtroHorario = v;
-  document.querySelectorAll(".horarios button")
-    .forEach(b => b.classList.remove("ativo"));
-  btn.classList.add("ativo");
-  render(busca.value);
-};
-
-salvar.onclick = () => {
-  if(!nome.value || !telefone.value)
-    return alert("Preencha tudo");
-
-  const alunos = get();
-
-  if(editId){
-    alunos.forEach(a=>{
-      if(a.id === editId){
-        a.nome = nome.value;
-        a.telefone = telefone.value;
-        a.horario = horario.value;
-      }
-    });
-    editId = null;
-  } else {
-    alunos.push({
-      id: Date.now(),
-      nome: nome.value,
-      telefone: telefone.value,
-      horario: horario.value,
-      pago: false
-    });
-  }
-
-  set(alunos);
-  nome.value = "";
-  telefone.value = "";
-  horario.value = filtroHorario;
-  render(busca.value);
-};
-
-function render(f=""){
-  lista.innerHTML="";
-  get()
-    .filter(a =>
-      a.horario === filtroHorario &&
-      a.nome.toLowerCase().includes(f.toLowerCase())
-    )
-    .forEach(a=>{
-      const d = document.createElement("div");
-      d.className = "card";
-      d.innerHTML = `
-        <b>${a.nome}</b><br>
-        ${a.telefone} | ${a.horario}
-        <div class="actions">
-          ${!a.pago ? `
-            <button class="whats" onclick="enviar('${a.nome}','${a.telefone}')">💬 Enviar</button>
-            <button class="pago" onclick="pagar(${a.id})">✅ Pago</button>
-          ` : ""}
-          <button class="editar" onclick="editar(${a.id})">✏️ Editar</button>
-          <button class="excluir" onclick="excluir(${a.id})">🗑 Excluir</button>
-        </div>
-      `;
-      lista.appendChild(d);
-    });
+const atualizarContador = () => {
+  const total = get().filter(a=>a.horario===filtroHorario).length;
+  document.getElementById('contador').innerText = `Alunos neste horário: ${total}`;
 }
 
-busca.oninput = e => render(e.target.value);
+// Render separando aguardando e pagos
+const render = (f="")=>{
+  const aguardando = document.getElementById('aguardando');
+  const pagos = document.getElementById('pagos');
+  aguardando.innerHTML=""; pagos.innerHTML="";
+  const filtrados = get().filter(a=>a.horario===filtroHorario && a.nome.toLowerCase().includes(f.toLowerCase()));
+  filtrados.forEach(a=>{
+    const d=document.createElement("div"); 
+    d.className="card";
+    d.innerHTML=`<b>${a.nome}</b> <span style="font-size:12px;color:#ccc">(${a.data})</span><br>${a.telefone}
+      <div class="actions">
+        ${!a.pago?`<button class="whats" title="Enviar WhatsApp" onclick="enviar('${a.nome}','${a.telefone}','${a.data}')">💬</button>
+        <button class="pago" title="Marcar como Pago" onclick="pagar(${a.id})">✅</button>`:""}
+        <button class="editar" title="Editar aluno" onclick="editar(${a.id})">✏️</button>
+        <button class="excluir" title="Excluir aluno" onclick="excluir(${a.id})">🗑</button>
+      </div>`;
+    if(a.pago) pagos.appendChild(d);
+    else aguardando.appendChild(d);
+  });
+  atualizarContador();
+};
 
-window.editar = id => {
-  const a = get().find(x=>x.id===id);
-  nome.value = a.nome;
-  telefone.value = a.telefone;
-  horario.value = a.horario;
-  filtroHorario = a.horario;
-  editId = id;
+// Horário
+document.querySelectorAll('.horarios button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    filtroHorario = btn.dataset.horario;
+    document.querySelectorAll('.horarios button').forEach(b=>b.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    render(busca.value);
+  });
+});
+
+// Salvar
+document.getElementById('salvar').onclick=()=>{
+  if(!nome.value || !telefone.value) return alert("Preencha tudo");
+  const alunos = get();
+  const hoje = new Date().toLocaleDateString();
+  if(editId){
+    alunos.forEach(a=>{if(a.id===editId){a.nome=nome.value;a.telefone=telefone.value;a.horario=filtroHorario;a.data=hoje;}});
+    editId=null;
+  } else {
+    alunos.push({id:Date.now()+Math.random(), nome:nome.value, telefone:telefone.value, horario:filtroHorario, pago:false, data:hoje});
+  }
+  set(alunos); nome.value=""; telefone.value="";
   render(busca.value);
-};
+}
 
-window.excluir = id => {
-  set(get().filter(a=>a.id!==id));
+// Buscar
+busca.oninput = e=>render(e.target.value);
+
+// Funções
+window.editar=id=>{
+  const a=get().find(x=>x.id===id);
+  nome.value=a.nome; telefone.value=a.telefone; filtroHorario=a.horario; editId=id;
   render(busca.value);
+}
+window.excluir=id=>{
+  if(confirm("Deseja realmente excluir este aluno?")){
+    set(get().filter(a=>a.id!==id));
+    render(busca.value);
+  }
+}
+window.pagar=id=>{
+  const alunos=get().map(a=>a.id===id?{...a,pago:true}:a);
+  set(alunos); render(busca.value);
+}
+window.enviar=(nome,telefone,data)=>{
+  const numero=telefone.replace(/\D/g,"");
+  let msg="";
+  if(filtroHorario==="Feminino") msg=`Olá ${nome}! 👋\nIniciando mais um mês de treinos feminino. Mensalidade disponível.\n🥊💪`;
+  else if(filtroHorario==="Kids") msg=`Olá ${nome}! 👋\nIniciando mais um mês de treinos para crianças. Mensalidade disponível.\n🥊💪`;
+  else msg=`Olá ${nome}! 👋\nIniciando mais um mês de treinos, informamos que a mensalidade já está disponível.\nEvolua um pouco todos os dias. 🥊💪`;
+  msg += `\nData: ${data}\n💳 PIX: ${PIX}`;
+  window.open(`https://wa.me/55${numero}?text=${encodeURIComponent(msg)}`,"_blank");
 };
 
-window.pagar = id => {
-  set(get().map(a=>a.id===id?{...a,pago:true}:a));
-  render(busca.value);
-};
-
-/* ✅ WHATSAPP WEB – ENVIO MANUAL */
-window.enviar = (nome, telefone) => {
-  const numero = telefone.replace(/\D/g,"");
-
-  const msg = `Olá ${nome}! 🥊
-
-Aqui é da *Família Fênix* 🔥
-Passando para lembrar sobre a mensalidade do mês.
-
-💳 PIX: ${PIX}
-Agradecemos desde já.`;
-
-  window.open(
-    `https://wa.me/55${numero}?text=${encodeURIComponent(msg)}`,
-    "_blank"
-  );
-};
-
-enviarTodos.onclick = () => {
-  const pend = get().filter(a=>!a.pago && a.horario===filtroHorario);
+// Enviar todos
+document.getElementById('enviarTodos').onclick=()=>{
+  const pend=get().filter(a=>!a.pago && a.horario===filtroHorario);
   if(!pend.length) return alert("Nenhum pendente nesse horário");
   if(!confirm(`Enviar para ${pend.length} alunos?`)) return;
-  pend.forEach((a,i)=>setTimeout(()=>enviar(a.nome,a.telefone), i*1500));
+  pend.forEach((a,i)=>setTimeout(()=>enviar(a.nome,a.telefone,a.data),i*1500));
 };
+
+// Exportar CSV
+document.getElementById('exportar').onclick=()=>{
+  const filtrados = get().filter(a=>a.horario===filtroHorario && a.nome.toLowerCase().includes(busca.value.toLowerCase()));
+  if(!filtrados.length) return alert("Nenhum aluno para exportar!");
+  let csv="Nome,Telefone,Horário,Pago,Data\n";
+  filtrados.forEach(a=>csv+=`${a.nome},${a.telefone},${a.horario},${a.pago},${a.data}\n`);
+  const blob=new Blob([csv],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a"); link.href=url; link.download="alunos.csv"; link.click();
+  URL.revokeObjectURL(url);
+}
+
+// Importar TXT/CSV
+document.getElementById('importarArquivo').addEventListener('change',e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload = evt=>{
+    const lines=evt.target.result.split("\n");
+    const alunos=get();
+    lines.forEach((l,i)=>{
+      if(!l.trim()) return;
+      let nome="", telefone="", horario="7:00";
+      if(l.includes("-")){ // formato: ~ Nome — +55...
+        const parts=l.split("—");
+        nome=parts[0].replace("~","").trim();
+        telefone=parts[1]?parts[1].trim():"";
+      } else if(l.includes(",")){
+        [nome,telefone,horario]=l.split(",");
+        nome=nome.trim(); telefone=telefone.trim(); horario=(horario||"7:00").trim();
+      } else return;
+      if(!nome||!telefone) return;
+      const existe=alunos.some(a=>a.telefone===telefone);
+      if(!existe){
+        alunos.push({id:Date.now()+Math.random(), nome, telefone, horario, pago:false, data:new Date().toLocaleDateString()});
+      }
+    });
+    set(alunos); render(busca.value);
+    alert("Importação concluída!");
+  }
+  reader.readAsText(file);
+});
 
 render();
 });
