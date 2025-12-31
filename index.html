@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kickboxing Cobrança</title>
+<title>Família Fênix – Cobranças</title>
 
 <style>
 body{font-family:Arial;background:#0f0f0f;color:#fff;padding:20px}
@@ -63,7 +63,7 @@ button{font-weight:bold;cursor:pointer}
 
 <body>
 
-<h2>🥊 Kickboxing Cobrança</h2>
+<h2>🔥 Família Fênix – Cobranças</h2>
 
 <input id="nome" placeholder="Nome do aluno">
 <input id="telefone" placeholder="Telefone com DDD">
@@ -80,8 +80,6 @@ button{font-weight:bold;cursor:pointer}
 <button id="salvar">💾 Salvar</button>
 
 <input id="busca" placeholder="🔍 Buscar aluno">
-
-<button id="enviarTodos">📤 ENVIAR PARA TODOS OS PENDENTES</button>
 
 <div id="lista"></div>
 
@@ -171,16 +169,6 @@ window.editar = id => {
   horario.value = a.horario;
   filtroHorario = a.horario;
   editId = id;
-
-  document.querySelectorAll(".horarios button")
-    .forEach(b=>{
-      b.classList.toggle("ativo",
-        b.textContent === a.horario ||
-        (b.textContent==="Mulheres" && a.horario==="Feminino") ||
-        (b.textContent==="Crianças" && a.horario==="Kids")
-      );
-    });
-
   render(busca.value);
 };
 
@@ -194,24 +182,29 @@ window.pagar = id => {
   render(busca.value);
 };
 
-/* ✅ WHATSAPP WEB */
+/* ✅ WHATSAPP WEB – ENVIO MANUAL */
 window.enviar = (nome, telefone) => {
   const numero = telefone.replace(/\D/g,"");
+
   const msg = `Olá ${nome}! 🥊
 
-Último dia para pagamento da mensalidade.
+Aqui é da *Família Fênix* 🔥
+Passando para lembrar sobre a mensalidade do mês.
 
-💳 PIX: ${PIX}`;
+💳 PIX: ${PIX}
+Agradecemos desde já.`;
 
-  const url = `https://wa.me/55${numero}?text=${encodeURIComponent(msg)}`;
-  window.open(url, "_blank");
+  window.open(
+    `https://wa.me/55${numero}?text=${encodeURIComponent(msg)}`,
+    "_blank"
+  );
 };
 
 enviarTodos.onclick = () => {
   const pend = get().filter(a=>!a.pago && a.horario===filtroHorario);
   if(!pend.length) return alert("Nenhum pendente nesse horário");
   if(!confirm(`Enviar para ${pend.length} alunos?`)) return;
-  pend.forEach((a,i)=>setTimeout(()=>enviar(a.nome,a.telefone),i*1500));
+  pend.forEach((a,i)=>setTimeout(()=>enviar(a.nome,a.telefone), i*1500));
 };
 
 render();
