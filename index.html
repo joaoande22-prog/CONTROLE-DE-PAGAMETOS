@@ -96,7 +96,6 @@ button{font-weight:bold;cursor:pointer}
 
 <script>
 document.addEventListener("DOMContentLoaded", ()=>{
-
 const PIX = "+55 75 98235-2788";
 let filtroHorario="7:00";
 let editId=null;
@@ -125,7 +124,6 @@ function atualizarContador(){
 function render(){
   listaA.innerHTML="";
   listaP.innerHTML="";
-
   get().filter(a=>a.horario===filtroHorario && a.nome.toLowerCase().includes(busca.value.toLowerCase()))
   .forEach(a=>{
     const d = document.createElement("div");
@@ -134,13 +132,12 @@ function render(){
       <b>${a.nome}</b><br>${a.telefone}
       <div class="actions">
         ${!a.pago?`<button class="whats" onclick="enviar('${a.nome}','${a.telefone}')">💬</button>
-        <button class="pago" onclick="pagar(${a.id})">✅</button>`:""}
-        <button class="editar" onclick="editar(${a.id})">✏️</button>
-        <button class="excluir" onclick="excluir(${a.id})">🗑</button>
+        <button class="pago" onclick="pagar(${a.id})">✅ PAGO</button>`:""}
+        <button class="editar" onclick="editar(${a.id})">✏️ EDITAR</button>
+        <button class="excluir" onclick="excluir(${a.id})">🗑 LIXEIRA</button>
       </div>`;
     (a.pago ? listaP : listaA).appendChild(d);
   });
-
   atualizarContador();
 }
 
@@ -162,7 +159,7 @@ salvar.onclick = ()=>{
     alunos.forEach(a=>{ if(a.id===editId){ a.nome=nome.value.trim(); a.telefone=telefone.value.trim(); a.horario=filtroHorario; } });
     editId=null;
   } else{
-    alunos.push({id:Date.now() + Math.random(), nome:nome.value.trim(), telefone:telefone.value.trim(), horario:filtroHorario, pago:false});
+    alunos.push({id:Date.now()+Math.random(), nome:nome.value.trim(), telefone:telefone.value.trim(), horario:filtroHorario, pago:false});
   }
   set(alunos);
   nome.value=""; telefone.value="";
@@ -170,7 +167,7 @@ salvar.onclick = ()=>{
 };
 
 // Ações
-window.editar = id => {
+window.editar = id=>{
   const a = get().find(x=>x.id===id);
   nome.value = a.nome;
   telefone.value = a.telefone;
@@ -178,13 +175,13 @@ window.editar = id => {
   editId = id;
   render();
 };
-window.excluir = id => {
+window.excluir = id=>{
   if(confirm("Deseja realmente excluir este aluno?")){
     set(get().filter(a=>a.id!==id));
     render();
   }
 };
-window.pagar = id => {
+window.pagar = id=>{
   set(get().map(a=>a.id===id?{...a,pago:true}:a));
   render();
 };
@@ -193,7 +190,6 @@ window.pagar = id => {
 window.enviar = (nome, telefone)=>{
   const num = telefone.replace(/\D/g,"");
   let msg = "";
-
   if(filtroHorario==="7:00" || filtroHorario==="8:00"){
     msg = `Olá ${nome}! 👋
 Iniciando mais um mês de treinos, informamos que a mensalidade já está disponível.
@@ -207,7 +203,7 @@ Evolua um pouco todos os dias. 🥊💪
   } else if(filtroHorario==="Kids" || filtroHorario==="5:00" || filtroHorario==="10:00"){
     msg = `Olá ${nome}! 👶
 Começando mais um mês de treinos para as crianças!
-Que seja divertido e cheio de evolução. 🥊✨
+Informamos que a mensalidade já está disponível. 🥊✨
 💳 PIX: ${PIX}`;
   } else {
     msg = `Olá ${nome}! 🥊
@@ -215,20 +211,18 @@ Aqui é da Família Fênix 🔥
 Mensalidade do mês disponível.
 💳 PIX: ${PIX}`;
   }
-
-  window.open(`https://wa.me/55${num}?text=${encodeURIComponent(msg)}`, "_blank");
+  window.open(`https://wa.me/55${num}?text=${encodeURIComponent(msg)}`,"_blank");
 };
 
 // Resetar pagos + gerar relatório
 resetPagos.onclick = ()=>{
   if(!confirm("Deseja mover todos os pagos para aguardando pagamento e gerar relatório CSV?")) return;
-  set(get().map(a=>({...a, pago:false})));
+  set(get().map(a=>({...a,pago:false})));
   render();
-
   const alunos = get();
   let csv = "Nome,Telefone,Horário,Pago\n";
   alunos.forEach(a=>csv+=`${a.nome},${a.telefone},${a.horario},${a.pago}\n`);
-  const blob = new Blob([csv], {type:"text/csv"});
+  const blob = new Blob([csv],{type:"text/csv"});
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = "relatorio_pagos.csv";
@@ -241,7 +235,7 @@ exportar.onclick = ()=>{
   if(!alunos.length) return alert("Nenhum aluno para exportar!");
   let csv = "Nome,Telefone,Horário,Pago\n";
   alunos.forEach(a=>csv+=`${a.nome},${a.telefone},${a.horario},${a.pago}\n`);
-  const blob = new Blob([csv], {type:"text/csv"});
+  const blob = new Blob([csv],{type:"text/csv"});
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = "alunos.csv";
@@ -257,18 +251,16 @@ importarArquivo.onchange = e=>{
     const lines = evt.target.result.split(/\r?\n/);
     const alunos = get();
     let importados = 0;
-
     lines.forEach(l=>{
       if(!l.trim()) return;
       let [nome, telefone] = l.includes("—") ? l.split("—") : l.split("-");
       if(nome && telefone){
         nome = nome.trim();
         telefone = telefone.trim();
-        alunos.push({id:Date.now() + Math.random(), nome, telefone, horario:filtroHorario, pago:false});
+        alunos.push({id:Date.now()+Math.random(), nome, telefone, horario:filtroHorario, pago:false});
         importados++;
       }
     });
-
     set(alunos);
     render();
     alert(`Importação concluída! ${importados} alunos adicionados.`);
