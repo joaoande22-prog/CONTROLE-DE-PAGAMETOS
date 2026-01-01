@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Família Fênix – Cobranças</title>
+<style>
+body{font-family:Arial;background:#0f0f0f;color:#fff;padding:20px}
+input,button{padding:12px;margin:5px 0;border-radius:8px;border:none;font-size:15px;width:100%}
+input{background:#222;color:#fff}
+button{font-weight:bold;cursor:pointer}
+
+#salvar{background:#ff5722}
+#exportar{background:#2196f3}
+#importarArquivo{background:#ff9800}
+
+.card{background:#1c1c1c;padding:12px;border-radius:10px;margin-bottom:10px}
+.card b{font-size:18px}
+
+.actions{display:flex;gap:5px;margin-top:8px}
+.actions button{padding:6px;font-size:13px}
+
+.whats{background:#25d366}
+.pago{background:#ff9800}
+.editar{background:#9c27b0}
+.excluir{background:#f44336}
+
+.horarios{display:flex;gap:8px;margin:10px 0}
+.horarios button{flex:1;background:#222;color:#fff}
+.horarios button.ativo{background:#ff0000;color:#000}
+
+#contador{margin:8px 0;color:#ffcc00;font-weight:bold}
+
+.tabs-container{display:flex;gap:10px;margin-top:15px}
+.tab{flex:1;background:#111;padding:10px;border-radius:8px;max-height:500px;overflow-y:auto}
+.tab h3{color:#ffcc00}
+
+/* LOGO ANIMADA */
+.topo{
+  display:flex;
+  align-items:center;
+  gap:15px;
+  margin-bottom:15px;
+}
+
+.logo-fenix{
+  width:65px;
+  height:65px;
+  border-radius:50%;
+  animation: fogo 2.5s infinite alternate;
+}
+
+@keyframes fogo{
+  0%{transform: scale(1) rotate(-2deg);filter: drop-shadow(0 0 6px #ff0000);}
+  50%{transform: scale(1.08) rotate(2deg);filter: drop-shadow(0 0 12px #ff9800);}
+  100%{transform: scale(1.15) rotate(-2deg);filter: drop-shadow(0 0 18px #ffcc00);}
+}
+</style>
+</head>
+<body>
+
+<div class="topo">
+  <img src="logo.png" class="logo-fenix" alt="Família Fênix">
+  <h2>🔥 Família Fênix – Cobranças</h2>
+</div>
+
+<input id="nome" placeholder="Nome do aluno">
+<input id="telefone" placeholder="Telefone com DDD">
+
+<div class="horarios">
+  <button class="ativo" data-horario="7:00">7:00</button>
+  <button data-horario="8:00">8:00</button>
+  <button data-horario="Feminino">Mulheres</button>
+  <button data-horario="Kids">Crianças</button>
+</div>
+
+<div id="contador"></div>
+
+<button id="salvar">💾 Salvar</button>
+<button id="exportar">📤 Exportar CSV</button>
+<input type="file" id="importarArquivo" accept=".txt,.csv">
+<input id="busca" placeholder="🔍 Buscar aluno">
+
+<div class="tabs-container">
+  <div class="tab">
+    <h3>Aguardando Pagamento</h3>
+    <div id="listaA"></div>
+  </div>
+
+  <div class="tab">
+    <h3>Pagos</h3>
+    <div id="listaP"></div>
+    <button id="resetPagos">🔄 Resetar pagos e gerar relatório</button>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", ()=>{
+
+const PIX = "+55 75 98235-2788";
+let filtroHorario="7:00";
+let editId=null;
+
+const nome=document.getElementById("nome");
+const telefone=document.getElementById("telefone");
+const busca=document.getElementById("busca");
+const listaA=document.getElementById("listaA");
+const listaP=document.getElementById("listaP");
+const contador=document.getElementById("contador");
+const salvar=document.getElementById("salvar");
+const exportar=document.getElementById("exportar");
+const importarArquivo=document.getElementById("importarArquivo");
+const resetPagos=document.getElementById("resetPagos");
+
+const get = ()=> JSON.parse(localStorage.getItem("alunos")||"[]");
+const set = a=> localStorage.setItem("alunos", JSON.stringify(a));
+
+function atualizarContador(){
+  const alunos = get().filter(a=>a.horario===filtroHorario && a.nome.toLowerCase().includes(busca.value.toLowerCase()));
+  const aguardando = alunos.filter(a=>!a.pago).length;
+  const pagos = alunos.filter(a=>a.pago).length;
+  contador.innerText = `Aguardando: ${aguardando} | Pagos: ${pagos}`;
+}
+
+function render(){
+  listaA.innerHTML="";
+  listaP.innerHTML="";
+
+  get().filter(a=>a.horario===filtroHorario && a.nome.toLowerCase().includes(busca.value.toLowerCase()))
+  .forEach(a=>{
+    const d = document.createElement("div");
+    d.className = "card";
+    d.innerHTML = `
+      <b>${a.nome}</b><br>${a.telefone}
+      <div class="actions">
+        ${!a.pago?`<button class="whats" onclick="enviar('${a.nome}','${a.telefone}')">💬</button>
+        <button class="pago" onclick="pagar(${a.id})">✅</button>`:""}
+        <button class="editar" onclick="editar(${a.id})">✏️</button>
+        <button class="excluir" onclick="excluir(${a.id})">🗑</button>
+      </div>`;
+    (a.pago ? listaP : listaA).appendChild(d);
+  });
+
+  atualizarContador();
+}
+
+// Mudar horário
+document.querySelectorAll(".horarios button").forEach(btn=>{
+  btn.onclick = ()=>{
+    filtroHorario = btn.dataset.horario;
+    document.querySelectorAll(".horarios button").forEach(b=>b.classList.remove("ativo"));
+    btn.classList.add("ativo");
+    render();
+  }
+});
+
+// Salvar aluno
+salvar.onclick = ()=>{
+  if(!nome.value || !telefone.value) return alert("Preencha tudo");
+  const alunos = get();
+  if(editId){
+    alunos.forEach(a=>{ if(a.id===editId){ a.nome=nome.value.trim(); a.telefone=telefone.value.trim(); a.horario=filtroHorario; } });
+    editId=null;
+  } else{
+    alunos.push({id:Date.now() + Math.random(), nome:nome.value.trim(), telefone:telefone.value.trim(), horario:filtroHorario, pago:false});
+  }
+  set(alunos);
+  nome.value=""; telefone.value="";
+  render();
+};
+
+// Ações
+window.editar = id => {
+  const a = get().find(x=>x.id===id);
+  nome.value = a.nome;
+  telefone.value = a.telefone;
+  filtroHorario = a.horario;
+  editId = id;
+  render();
+};
+window.excluir = id => {
+  if(confirm("Deseja realmente excluir este aluno?")){
+    set(get().filter(a=>a.id!==id));
+    render();
+  }
+};
+window.pagar = id => {
+  set(get().map(a=>a.id===id?{...a,pago:true}:a));
+  render();
+};
+
+// Enviar WhatsApp com mensagens diferentes por horário/turma
+window.enviar = (nome, telefone)=>{
+  const num = telefone.replace(/\D/g,"");
+  let msg = "";
+
+  if(filtroHorario==="7:00" || filtroHorario==="8:00"){
+    msg = `Olá ${nome}! 👋
+Iniciando mais um mês de treinos, informamos que a mensalidade já está disponível.
+Evolua um pouco todos os dias. 🥊💪
+💳 PIX: ${PIX}`;
+  } else if(filtroHorario==="Feminino"){
+    msg = `Olá ${nome}! 👋
+Iniciando mais um mês de treinos, informamos que a mensalidade já está disponível.
+Evolua um pouco todos os dias. 🥊💪
+💳 PIX: ${PIX}`;
+  } else if(filtroHorario==="Kids" || filtroHorario==="5:00" || filtroHorario==="10:00"){
+    msg = `Olá ${nome}! 👶
+Começando mais um mês de treinos para as crianças!
+Que seja divertido e cheio de evolução. 🥊✨
+💳 PIX: ${PIX}`;
+  } else {
+    msg = `Olá ${nome}! 🥊
+Aqui é da Família Fênix 🔥
+Mensalidade do mês disponível.
+💳 PIX: ${PIX}`;
+  }
+
+  window.open(`https://wa.me/55${num}?text=${encodeURIComponent(msg)}`, "_blank");
+};
+
+// Resetar pagos + gerar relatório
+resetPagos.onclick = ()=>{
+  if(!confirm("Deseja mover todos os pagos para aguardando pagamento e gerar relatório CSV?")) return;
+  set(get().map(a=>({...a, pago:false})));
+  render();
+
+  const alunos = get();
+  let csv = "Nome,Telefone,Horário,Pago\n";
+  alunos.forEach(a=>csv+=`${a.nome},${a.telefone},${a.horario},${a.pago}\n`);
+  const blob = new Blob([csv], {type:"text/csv"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "relatorio_pagos.csv";
+  link.click();
+};
+
+// Exportar CSV
+exportar.onclick = ()=>{
+  const alunos = get();
+  if(!alunos.length) return alert("Nenhum aluno para exportar!");
+  let csv = "Nome,Telefone,Horário,Pago\n";
+  alunos.forEach(a=>csv+=`${a.nome},${a.telefone},${a.horario},${a.pago}\n`);
+  const blob = new Blob([csv], {type:"text/csv"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "alunos.csv";
+  link.click();
+};
+
+// Importar TXT/CSV
+importarArquivo.onchange = e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = evt=>{
+    const lines = evt.target.result.split(/\r?\n/);
+    const alunos = get();
+    let importados = 0;
+
+    lines.forEach(l=>{
+      if(!l.trim()) return;
+      let [nome, telefone] = l.includes("—") ? l.split("—") : l.split("-");
+      if(nome && telefone){
+        nome = nome.trim();
+        telefone = telefone.trim();
+        alunos.push({id:Date.now() + Math.random(), nome, telefone, horario:filtroHorario, pago:false});
+        importados++;
+      }
+    });
+
+    set(alunos);
+    render();
+    alert(`Importação concluída! ${importados} alunos adicionados.`);
+  };
+  reader.readAsText(file);
+};
+
+busca.oninput = render;
+
+render();
+});
+</script>
+
+</body>
+</html>
